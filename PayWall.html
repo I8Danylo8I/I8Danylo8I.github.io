@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Code Meteor's Client - Payment Plans</title>
+  <link rel="stylesheet" type="text/css" href="css/PayStyle.css">
+</head>
+<body>
+  <header>
+    <h1>Code Meteor's Client - Payment Plans</h1>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="#plans">Plans</a></li>
+    </ul>
+  </nav>
+
+  <section id="plans">
+    <div class="container">
+      <h2>Payment Plans</h2>
+      <div class="plan">
+        <h3>Code Meteor Lite</h3>
+        <p>Basic features without any combat modules</p>
+        <p>Price: Free</p>
+        <a href="https://greasyfork.org/en/scripts/467929-voxiom-io-code-meteor-s-client" class="button">Get it Free</a>
+      </div>
+      <div class="plan">
+        <h3>Code Meteor</h3>
+        <p>Has a bad aimbot and some of the exploit tab</p>
+        <p>Price: Discord Nitro Classic for one month</p>
+        <a href="#" class="button" onclick="processPayment('nitro')">Get It Now</a>
+      </div>
+      <div class="plan">
+        <h3>Meteor+</h3>
+        <p>Has all the features you need! Advanced Aim, No Recoil, Chams, Tracers, Xray!</p>
+        <p>Price: $15.99</p>
+        <a href="#" class="button" onclick="processPayment('paypal')">Get It Now</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      &copy; 2023 Code Meteor's Client. All rights reserved.
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    function processPayment(paymentMethod) {
+      if (paymentMethod === 'nitro') {
+        // Handle Discord Nitro Classic payment
+        alert("Please complete the payment using Discord Nitro Classic.");
+      } else if (paymentMethod === 'paypal') {
+        // Handle PayPal payment
+        alert("Please complete the payment using PayPal.");
+      }
+    }
+  </script>
+</body>
+</html>
