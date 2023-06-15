@@ -3,6 +3,28 @@
 <head>
   <title>Code Meteor's Client</title>
   <link rel="stylesheet" type="text/css" href="css/MainStyle.css">
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var links = document.querySelectorAll('a[href^="#"]');
+      for (var i = 0; i < links.length; i++) {
+        links[i].addEventListener('click', smoothScroll);
+      }
+
+      function smoothScroll(e) {
+        e.preventDefault();
+        var targetId = this.getAttribute('href');
+        var targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    });
+  </script>
 </head>
 <body>
   <header>
