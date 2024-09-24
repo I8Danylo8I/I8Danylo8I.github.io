@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search for Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #2a2a2a, #333333);
+            color: #f1f1f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #f1f1f1;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        .container {
+            background-color: rgba(30, 30, 30, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        #search-bar {
+            margin-bottom: 20px;
+            padding: 15px;
+            width: 100%;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 10px;
+            background-color: #444;
+            color: #fff;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+            outline: none;
+        }
+
+        #search-bar:focus {
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .link-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: rgba(50, 50, 50, 0.9);
+            text-align: center; /* Center the link text */
+            transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.5s ease;
+            opacity: 1;
+        }
+
+        .link-item a {
+            text-decoration: none;
+            color: #f1f1f1;
+            font-size: 1.2rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            display: inline-block; /* Keeps the text centered even with hover */
+        }
+
+        .link-item a:hover {
+            color: #ff6b6b;
+        }
+
+        .link-item:hover {
+            background-color: rgba(80, 80, 80, 0.9);
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .fade-out {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .fade-in {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        @media screen and (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            #search-bar {
+                font-size: 1rem;
+                padding: 12px;
+            }
+
+            .link-item a {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Open tool</h1>
+    <input type="text" id="search-bar" onkeyup="filterLinks()" onkeypress="openFirstResult(event)" placeholder="Ask AI to open something">
+
+    <div id="link-list">
+        <div class="link-item fade-in">
+            <a href="https://i8danylo8i.github.io/graph">Graph Calculator</a>
+        </div>
+        <div class="link-item fade-in">
+            <a href="https://example2.com">Some shit</a>
+        </div>
+        <div class="link-item fade-in">
+            <a href="https://example3.com">Anoda wan</a>
+        </div>
+        <div class="link-item fade-in">
+            <a href="https://example4.com">Some other shit</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterLinks() {
+        const input = document.getElementById('search-bar').value.toLowerCase();
+        const words = input.split(" ");
+        const links = document.querySelectorAll('.link-item');
+
+        links.forEach(function(link) {
+            const text = link.textContent.toLowerCase();
+            let match = words.some(word => text.includes(word));
+            if (match) {
+                link.classList.remove('fade-out');
+                link.classList.add('fade-in');
+                link.style.display = '';  // Make it visible
+            } else {
+                link.classList.remove('fade-in');
+                link.classList.add('fade-out');
+                setTimeout(() => {
+                    link.style.display = 'none';  // Hide after animation
+                }, 500);
+            }
+        });
+    }
+
+    function openFirstResult(event) {
+        // If 'Enter' key is pressed and "open" is in the search bar
+        if (event.key === 'Enter') {
+            const input = document.getElementById('search-bar').value.toLowerCase();
+            if (input.includes("open")) {
+                const firstLink = document.querySelector('.link-item a');
+                if (firstLink) {
+                    window.open(firstLink.href, '_blank');  // Open the first result
+                }
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
