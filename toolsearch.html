@@ -10,7 +10,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #2a2a2a, #333333);
@@ -18,19 +17,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             padding: 20px;
         }
-
-        h1 {
-            text-align: center;
-            font-size: 2.5rem;
-            color: #f1f1f1;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-        }
-
         .container {
             background-color: rgba(30, 30, 30, 0.9);
             border-radius: 15px;
@@ -40,139 +29,213 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(10px);
         }
-
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #f1f1f1;
+            margin-bottom: 30px;
+            letter-spacing: 4px;
+        }
         #search-bar {
-            margin-bottom: 20px;
-            padding: 15px;
             width: 100%;
+            padding: 15px;
             font-size: 1.2rem;
             border: none;
             border-radius: 10px;
             background-color: #444;
             color: #fff;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
             transition: box-shadow 0.3s ease;
-            outline: none;
         }
-
         #search-bar:focus {
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            outline: none;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
         }
-
+        #link-list {
+            transition: opacity 0.3s ease;
+        }
         .link-item {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 8px;
             background-color: rgba(50, 50, 50, 0.9);
-            text-align: center; /* Center the link text */
-            transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.5s ease;
-            opacity: 1;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease, opacity 0.3s ease;
         }
-
         .link-item a {
+            display: block;
+            padding: 15px;
             text-decoration: none;
             color: #f1f1f1;
             font-size: 1.2rem;
-            font-weight: 500;
-            transition: color 0.3s ease;
-            display: inline-block; /* Keeps the text centered even with hover */
+            transition: background-color 0.3s ease;
         }
-
-        .link-item a:hover {
-            color: #ff6b6b;
-        }
-
         .link-item:hover {
+            transform: translateY(-5px);
+        }
+        .link-item a:hover {
             background-color: rgba(80, 80, 80, 0.9);
-            transform: translateY(-10px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
-
-        .fade-out {
-            opacity: 0;
-            transform: translateY(20px);
+        .similarity-percentage {
+            float: right;
+            font-size: 0.9rem;
+            color: #aaa;
         }
-
-        .fade-in {
-            opacity: 1;
-            transform: translateY(0);
-            transition: opacity 0.5s ease, transform 0.5s ease;
+        #no-results-message {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #ff6b6b;
+            margin-top: 20px;
+            display: none;
         }
-
         @media screen and (max-width: 600px) {
-            h1 {
-                font-size: 2rem;
-            }
-
-            #search-bar {
-                font-size: 1rem;
-                padding: 12px;
-            }
-
-            .link-item a {
-                font-size: 1rem;
-            }
+            h1 { font-size: 2rem; }
+            #search-bar { font-size: 1rem; }
+            .link-item a { font-size: 1rem; }
         }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <h1>Open tool</h1>
-    <input type="text" id="search-bar" onkeyup="filterLinks()" onkeypress="openFirstResult(event)" placeholder="Ask AI to open something">
-
-    <div id="link-list">
-        <div class="link-item fade-in">
-            <a href="https://i8danylo8i.github.io/graph">Graph Calculator</a>
-        </div>
-        <div class="link-item fade-in">
-            <a href="https://example2.com">Some shit</a>
-        </div>
-        <div class="link-item fade-in">
-            <a href="https://example3.com">Anoda wan</a>
-        </div>
-        <div class="link-item fade-in">
-            <a href="https://example4.com">Some other shit</a>
-        </div>
+    <div class="container">
+        <h1>Danylo's Helping Tools</h1>
+        <input type="text" id="search-bar" placeholder="Ask AI to open something">
+        <div id="link-list"></div>
+        <div id="no-results-message">AI couldn't find what you were looking for.</div>
     </div>
-</div>
+    <script>
+        const links = [
+            { url: "https://i8danylo8i.github.io/graph", text: "Graph Calculator" },
+            { url: "https://example2.com", text: "Tropf Trichter Helper" },
+            { url: "https://example3.com", text: "Another One" },
+            { url: "https://example4.com", text: "Some Other Tool" }
+        ];
 
-<script>
-    function filterLinks() {
-        const input = document.getElementById('search-bar').value.toLowerCase();
-        const words = input.split(" ");
-        const links = document.querySelectorAll('.link-item');
+        const stopwords = new Set(['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now']);
 
-        links.forEach(function(link) {
-            const text = link.textContent.toLowerCase();
-            let match = words.some(word => text.includes(word));
-            if (match) {
-                link.classList.remove('fade-out');
-                link.classList.add('fade-in');
-                link.style.display = '';  // Make it visible
-            } else {
-                link.classList.remove('fade-in');
-                link.classList.add('fade-out');
-                setTimeout(() => {
-                    link.style.display = 'none';  // Hide after animation
-                }, 500);
+        function levenshteinDistance(a, b) {
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
             }
-        });
-    }
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
 
-    function openFirstResult(event) {
-        // If 'Enter' key is pressed and "open" is in the search bar
-        if (event.key === 'Enter') {
-            const input = document.getElementById('search-bar').value.toLowerCase();
-            if (input.includes("open")) {
-                const firstLink = document.querySelector('.link-item a');
-                if (firstLink) {
-                    window.open(firstLink.href, '_blank');  // Open the first result
+        function tokenize(text) {
+            return text.toLowerCase().match(/\b\w+\b/g) || [];
+        }
+
+        function removeStopwords(words) {
+            return words.filter(word => !stopwords.has(word));
+        }
+
+        function calculateSimilarity(query, text) {
+            const queryWords = removeStopwords(tokenize(query));
+            const textWords = removeStopwords(tokenize(text));
+            let matchCount = 0;
+            let totalWords = new Set([...queryWords, ...textWords]).size;
+            for (let queryWord of queryWords) {
+                for (let textWord of textWords) {
+                    const distance = levenshteinDistance(queryWord, textWord);
+                    const maxLength = Math.max(queryWord.length, textWord.length);
+                    const similarity = 1 - distance / maxLength;
+                    if (similarity > 0.5) {
+                        matchCount++;
+                    }
+                }
+            }
+            return (matchCount / totalWords) * 100;
+        }
+
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+
+        function filterLinks() {
+            const query = document.getElementById('search-bar').value.trim().toLowerCase();
+            const linkList = document.getElementById('link-list');
+            const noResultsMessage = document.getElementById('no-results-message');
+            let visibleLinks = 0;
+            linkList.style.opacity = '0.5';
+            setTimeout(() => {
+                links.forEach(link => {
+                    const similarity = calculateSimilarity(query, link.text);
+                    const linkElement = document.getElementById(link.url);
+                    if (similarity > 1) {
+                        linkElement.style.display = 'block';
+                        linkElement.querySelector('.similarity-percentage').textContent = `(${similarity.toFixed(1)}%)`;
+                        visibleLinks++;
+                    } else {
+                        linkElement.style.display = 'none';
+                    }
+                });
+                noResultsMessage.style.display = visibleLinks === 0 ? 'block' : 'none';
+                linkList.style.opacity = '1';
+            }, 300);
+        }
+
+        function openLink(url) {
+            window.location.href = url;
+        }
+
+        function openFirstResult(event) {
+            if (event.key === 'Enter') {
+                const input = document.getElementById('search-bar').value.trim().toLowerCase();
+                let bestMatch = null;
+                let highestSimilarity = -1;
+                links.forEach(link => {
+                    const similarity = calculateSimilarity(input, link.text);
+                    if (similarity > highestSimilarity) {
+                        highestSimilarity = similarity;
+                        bestMatch = link;
+                    }
+                });
+                if (bestMatch && highestSimilarity > 1) {
+                    openLink(bestMatch.url);
+                } else {
+                    alert("AI couldn't find what you were looking for.");
                 }
             }
         }
-    }
-</script>
 
+        document.addEventListener('DOMContentLoaded', () => {
+    const linkList = document.getElementById('link-list');
+    links.forEach(link => {
+        const linkItem = document.createElement('div');
+        linkItem.className = 'link-item';
+        linkItem.id = link.url;
+        linkItem.innerHTML = `
+            <a href="javascript:void(0);" onclick="openLink('${link.url}');">
+                ${link.text}
+                <span class="similarity-percentage"></span>
+            </a>
+        `;
+        linkList.appendChild(linkItem);
+    });
+            const searchBar = document.getElementById('search-bar');
+            searchBar.addEventListener('input', debounce(filterLinks, 300));
+            searchBar.addEventListener('keypress', openFirstResult);
+        });
+    </script>
 </body>
 </html>
