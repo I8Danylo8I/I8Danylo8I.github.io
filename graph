@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Graph Creator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f8fa;
+      padding: 10px;
+      margin: 0;
+    }
+    h1 {
+      text-align: center;
+      color: #444;
+      font-size: 1.8em;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 15px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+    .input-fields {
+      margin: 15px 0;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+    }
+    .section-title {
+      margin-bottom: 10px;
+      font-weight: bold;
+      font-size: 1.2em;
+      color: #007bff;
+      text-transform: uppercase;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 5px;
+    }
+    .input-group {
+      margin-bottom: 10px;
+    }
+    label {
+      display: inline-block;
+      width: 100%;
+      max-width: 180px;
+      font-weight: bold;
+      margin-right: 10px;
+      color: #333;
+    }
+    input[type="number"], input[type="text"], select {
+      padding: 8px;
+      font-size: 1em;
+      width: calc(100% - 200px);
+      max-width: 150px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 1em;
+      cursor: pointer;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #graph {
+      border: 1px solid #ccc;
+      margin-top: 20px;
+      cursor: pointer;
+      background-color: white;
+      width: 100%;
+      height: auto;
+    }
+    .value-pair {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .value-pair input, .value-pair select {
+      margin-right: 10px;
+      flex: 1 1 calc(50% - 20px);
+    }
+    .value-pair button {
+      margin-left: auto;
+      background-color: #dc3545;
+      flex: 1 1 100%;
+      max-width: 100px;
+      margin-top: 5px;
+    }
+    .value-pair button:hover {
+      background-color: #c82333;
+    }
+    .add-button {
+      background-color: #28a745;
+      border-radius: 99999px;
+    }
+    .add-button:hover {
+      background-color: #218838;
+      border-radius: 19px;
+    }
+    .average-button {
+      margin-top: 10px;
+      background-color: #ffc107;
+    }
+    .average-button:hover {
+      background-color: #e0a800;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    #scale-info {
+      margin-top: 30px;
+      background-color: #eef;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid #007bff;
+      color: #333;
+    }
+    .scale-section-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #007bff;
+    }
+    .scale-values {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+    }
+    .scale-values > div {
+      flex: 1 1 100%;
+      max-width: 100%;
+      margin-bottom: 20px;
+    }
+    .scale-list {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    @media (min-width: 600px) {
+      .value-pair input, .value-pair select {
+        flex: 1 1 calc(25% - 20px);
+      }
+      .value-pair button {
+        flex: 0 0 auto;
+        margin-top: 0;
+      }
+      .scale-values > div {
+        flex: 1 1 calc(50% - 20px);
+        max-width: calc(50% - 20px);
+      }
+    }
+    @media (min-width: 768px) {
+      label {
+        width: 180px;
+      }
+      input[type="number"], input[type="text"], select {
+        width: 150px;
+      }
+      .value-pair input, .value-pair select {
+        flex: 0 0 auto;
+      }
+      .value-pair {
+        flex-wrap: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Danylo's Graph Creator</h1>
+    <div class="section input-fields">
+      <div class="section-title">Dimentions of the graph</div>
+      <div class="input-group">
+        <label for="graphWidth">Graph Width (cm):</label>
+        <input type="number" id="graphWidth" value="27" onchange="drawGraph()">
+      </div>
+      <div class="input-group">
+        <label for="graphHeight">Graph Height (cm):</label>
+        <input type="number" id="graphHeight" value="17" onchange="drawGraph()">
+      </div>
+      <div class="section">
+        <div class="section-title">Custom X and Y Values</div>
+        <div class="custom-values" id="customValues">
+          <!-- Dynamic input fields for X and Y values will be added here -->
+        </div>
+        <button class="add-button" onclick="addCustomValue()">+</button>
+      </div>
+      <div class="section">
+        <div class="section-title">Custom Units</div>
+        <div class="input-group">
+          <label for="customUnitX">X-Axis Unit:</label>
+          <select id="customUnitX">
+            <option value="g">g</option>
+            <option value="ml">ml</option>
+            <option value="l">l</option>
+            <option value="kg">kg</option>
+            <option value="custom">Custom</option>
+          </select>
+          <input type="text" id="customUnitXText" placeholder="Enter custom unit" style="display:none;">
+        </div>
+        <div class="input-group">
+          <label for="customUnitY">Y-Axis Unit:</label>
+          <select id="customUnitY">
+            <option value="g">g</option>
+            <option value="ml">ml</option>
+            <option value="l">l</option>
+            <option value="kg">kg</option>
+            <option value="custom">Custom</option>
+          </select>
+          <input type="text" id="customUnitYText" placeholder="Enter custom unit" style="display:none;">
+        </div>
+      </div>
+      <button class="average-button" onclick="drawAverageLine()">Draw Average Line</button>
+    </div>
+    <canvas id="graph"></canvas>
+    <div id="scale-info">
+      <div class="scale-section-title">Draw Helper</div>
+      <div class="scale-values">
+        <div>
+          <h3>X-Axis</h3>
+          <div id="xScaleList" class="scale-list"></div>
+        </div>
+        <div>
+          <h3>Y-Axis</h3>
+          <div id="yScaleList" class="scale-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let customValuesCount = 0;
+    let customValues = JSON.parse(localStorage.getItem('customValues')) || [];
+
+    document.getElementById('customUnitX').addEventListener('change', function () {
+      const customUnitText = document.getElementById('customUnitXText');
+      customUnitText.style.display = (this.value === 'custom') ? 'inline-block' : 'none';
+      drawGraph();
+    });
+
+    document.getElementById('customUnitY').addEventListener('change', function () {
+      const customUnitText = document.getElementById('customUnitYText');
+      customUnitText.style.display = (this.value === 'custom') ? 'inline-block' : 'none';
+      drawGraph();
+    });
+
+    // Function to add custom X and Y values
+    function addCustomValue(x = '', y = '') {
+      customValuesCount++;
+      const customValuesContainer = document.getElementById('customValues');
+
+      const valuePairDiv = document.createElement('div');
+      valuePairDiv.className = 'value-pair';
+      valuePairDiv.id = `value-pair-${customValuesCount}`;
+
+      const xInput = document.createElement('input');
+      xInput.type = 'number';
+      xInput.placeholder = `X-Value ${customValuesCount}`;
+      xInput.id = `xValue-${customValuesCount}`;
+      xInput.value = x;
+
+      const yInput = document.createElement('input');
+      yInput.type = 'number';
+      yInput.placeholder = `Y-Value ${customValuesCount}`;
+      yInput.id = `yValue-${customValuesCount}`;
+      yInput.value = y;
+
+      // Event listeners for auto-filling and saving values
+      xInput.addEventListener('blur', autoFillValue);
+      yInput.addEventListener('blur', autoFillValue);
+
+      // Call saveValues when inputs change
+      xInput.addEventListener('input', saveValues);
+      yInput.addEventListener('input', saveValues);
+
+      // Create remove button
+      const removeButton = document.createElement('button');
+      removeButton.textContent = 'Remove';
+      removeButton.onclick = function() {
+        customValuesContainer.removeChild(valuePairDiv);
+        saveValues();
+      };
+
+      valuePairDiv.appendChild(xInput);
+      valuePairDiv.appendChild(yInput);
+      valuePairDiv.appendChild(removeButton);
+      customValuesContainer.appendChild(valuePairDiv);
+
+      // No need to push to customValues here; saveValues will handle it
+      saveValues();
+    }
+
+    // Function to save values to localStorage and update the graph
+    function saveValues() {
+      customValues = [];
+      const customValuesContainer = document.getElementById('customValues');
+      const valuePairs = customValuesContainer.getElementsByClassName('value-pair');
+
+      for (let i = 0; i < valuePairs.length; i++) {
+        const xInput = valuePairs[i].querySelector('input[id^="xValue-"]');
+        const yInput = valuePairs[i].querySelector('input[id^="yValue-"]');
+        const xValue = parseFloat(xInput.value);
+        const yValue = parseFloat(yInput.value);
+
+        if (!isNaN(xValue) && !isNaN(yValue)) {
+          customValues.push({ x: xValue, y: yValue });
+        }
+      }
+      localStorage.setItem('customValues', JSON.stringify(customValues));
+      drawGraph();
+    }
+
+    // Function to auto-fill missing X or Y values based on the graph
+    function autoFillValue() {
+      const xInput = this.parentNode.querySelector('input[id^="xValue-"]');
+      const yInput = this.parentNode.querySelector('input[id^="yValue-"]');
+
+      if (this === xInput && yInput.value === '') {
+        // If Y is empty, predict Y based on X
+        const xVal = parseFloat(xInput.value);
+        if (!isNaN(xVal) && customValues.length >= 2) {
+          const yVal = predictValue(xVal, 'x');
+          if (!isNaN(yVal)) {
+            yInput.value = yVal.toFixed(2);
+            saveValues();
+          }
+        }
+      } else if (this === yInput && xInput.value === '') {
+        // If X is empty, predict X based on Y
+        const yVal = parseFloat(yInput.value);
+        if (!isNaN(yVal) && customValues.length >= 2) {
+          const xVal = predictValue(yVal, 'y');
+          if (!isNaN(xVal)) {
+            xInput.value = xVal.toFixed(2);
+            saveValues();
+          }
+        }
+      }
+    }
+
+    // Function to get unit from select or custom input
+    function getUnit(selectId, customTextId) {
+      const unitSelect = document.getElementById(selectId);
+      if (unitSelect.value === 'custom') {
+        return document.getElementById(customTextId).value;
+      }
+      return unitSelect.value;
+    }
+
+    // Function to draw the graph
+    function drawGraph() {
+      const canvas = document.getElementById('graph');
+      const ctx = canvas.getContext('2d');
+
+      // Adjust canvas size based on container width
+      const containerWidth = document.querySelector('.container').clientWidth;
+      canvas.width = containerWidth - 40; // 40px padding adjustment
+      canvas.height = (canvas.width * 0.625); // Maintain aspect ratio (16:10)
+
+      const width = canvas.width;
+      const height = canvas.height;
+
+      const graphWidthCm = parseFloat(document.getElementById('graphWidth').value);
+      const graphHeightCm = parseFloat(document.getElementById('graphHeight').value);
+
+      const graphWidthMm = graphWidthCm * 10;
+      const graphHeightMm = graphHeightCm * 10;
+
+      const xValues = customValues.map(val => val.x);
+      const yValues = customValues.map(val => val.y);
+
+      ctx.clearRect(0, 0, width, height);
+
+      if (xValues.length === 0 || yValues.length === 0) {
+        return;
+      }
+
+      const xMin = Math.min(...xValues);
+      const xMax = Math.max(...xValues);
+      const yMin = Math.min(...yValues);
+      const yMax = Math.max(...yValues);
+
+      // Margins
+      const marginLeft = 40;
+      const marginRight = 20;
+      const marginTop = 30;
+      const marginBottom = 30;
+
+      // Draw 1mm squares
+      ctx.strokeStyle = '#ddd';
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i <= graphWidthMm; i++) {
+        const x = marginLeft + (i * (width - marginLeft - marginRight) / graphWidthMm);
+        ctx.beginPath();
+        ctx.moveTo(x, marginTop);
+        ctx.lineTo(x, height - marginBottom);
+        ctx.stroke();
+      }
+      for (let i = 0; i <= graphHeightMm; i++) {
+        const y = height - marginBottom - (i * (height - marginTop - marginBottom) / graphHeightMm);
+        ctx.beginPath();
+        ctx.moveTo(marginLeft, y);
+        ctx.lineTo(width - marginRight, y);
+        ctx.stroke();
+      }
+
+      // Draw larger squares for every cm
+      ctx.strokeStyle = '#aaa';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= graphWidthCm; i++) {
+        const x = marginLeft + (i * (width - marginLeft - marginRight) / graphWidthCm);
+        ctx.beginPath();
+        ctx.moveTo(x, marginTop);
+        ctx.lineTo(x, height - marginBottom);
+        ctx.stroke();
+      }
+      for (let i = 0; i <= graphHeightCm; i++) {
+        const y = height - marginBottom - (i * (height - marginTop - marginBottom) / graphHeightCm);
+        ctx.beginPath();
+        ctx.moveTo(marginLeft, y);
+        ctx.lineTo(width - marginRight, y);
+        ctx.stroke();
+      }
+
+      // Draw points (smaller circles)
+      ctx.fillStyle = '#007bff';
+      ctx.font = '12px Arial';
+      for (let j = 0; j < xValues.length; j++) {
+        const xVal = xValues[j];
+        const yVal = yValues[j];
+
+        const xPos = marginLeft + ((xVal - xMin) / (xMax - xMin)) * (width - marginLeft - marginRight);
+        const yPos = height - marginBottom - ((yVal - yMin) / (yMax - yMin)) * (height - marginTop - marginBottom);
+
+        ctx.beginPath();
+        ctx.arc(xPos, yPos, 3, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // Draw extended scale lines for each value
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.moveTo(xPos, height - marginBottom);
+        ctx.lineTo(xPos, height - marginBottom + 10); // Longer tick at the bottom
+        ctx.stroke();
+        ctx.fillText(xVal.toFixed(2) + " " + getUnit('customUnitX', 'customUnitXText'), xPos - 10, height - marginBottom + 25);
+
+        ctx.beginPath();
+        ctx.moveTo(marginLeft, yPos);
+        ctx.lineTo(marginLeft - 10, yPos); // Longer tick at the left
+        ctx.stroke();
+        ctx.fillText(yVal.toFixed(2) + " " + getUnit('customUnitY', 'customUnitYText'), 5, yPos + 5);
+      }
+
+      // Draw graph border
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(marginLeft, marginTop, width - marginLeft - marginRight, height - marginTop - marginBottom);
+
+      // Update the custom value positions (X,Y) in cm and mm
+      updateScaleInfo(xValues, yValues, xMin, xMax, yMin, yMax);
+    }
+
+    // Function to update scale information
+    function updateScaleInfo(xValues, yValues, xMin, xMax, yMin, yMax) {
+      const xScaleList = document.getElementById('xScaleList');
+      const yScaleList = document.getElementById('yScaleList');
+      xScaleList.innerHTML = '';
+      yScaleList.innerHTML = '';
+
+      for (let i = 0; i < xValues.length; i++) {
+        const xValue = xValues[i];
+        const yValue = yValues[i];
+
+        const xPosCm = ((xValue - xMin) / (xMax - xMin)) * (parseFloat(document.getElementById('graphWidth').value));
+        const yPosCm = ((yValue - yMin) / (yMax - yMin)) * (parseFloat(document.getElementById('graphHeight').value));
+
+        const xScaleItem = document.createElement('div');
+        xScaleItem.textContent = `${xValue} ${getUnit('customUnitX', 'customUnitXText')} - ${xPosCm.toFixed(2)} cm`;
+        xScaleList.appendChild(xScaleItem);
+
+        const yScaleItem = document.createElement('div');
+        yScaleItem.textContent = `${yValue} ${getUnit('customUnitY', 'customUnitYText')} - ${yPosCm.toFixed(2)} cm`;
+        yScaleList.appendChild(yScaleItem);
+      }
+    }
+
+    // Function to draw the average (best-fit) line starting from (xMin, yMin)
+    function drawAverageLine() {
+      if (customValues.length < 2) {
+        alert('At least two data points are required to draw an average line.');
+        return;
+      }
+
+      const canvas = document.getElementById('graph');
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+
+      const xValues = customValues.map(val => val.x);
+      const yValues = customValues.map(val => val.y);
+
+      const xMin = Math.min(...xValues);
+      const xMax = Math.max(...xValues);
+      const yMin = Math.min(...yValues);
+      const yMax = Math.max(...yValues);
+
+      // Margins
+      const marginLeft = 40;
+      const marginRight = 20;
+      const marginTop = 30;
+      const marginBottom = 30;
+
+      // Adjusted linear regression to pass through (xMin, yMin)
+      const xDifferences = xValues.map(x => x - xMin);
+      const yDifferences = yValues.map(y => y - yMin);
+
+      const numerator = xDifferences.reduce((sum, xDiff, i) => sum + xDiff * yDifferences[i], 0);
+      const denominator = xDifferences.reduce((sum, xDiff) => sum + xDiff * xDiff, 0);
+
+      if (denominator === 0) {
+        alert('Cannot compute average line due to zero variance in X values.');
+        return;
+      }
+
+      const m = numerator / denominator;
+      const b = yMin - m * xMin;
+
+      // Calculate the end points of the line
+      const x1Value = xMin;
+      const y1Value = m * x1Value + b;
+      const x2Value = xMax;
+      const y2Value = m * x2Value + b;
+
+      const x1 = marginLeft + ((x1Value - xMin) / (xMax - xMin)) * (width - marginLeft - marginRight);
+      const y1 = height - marginBottom - ((y1Value - yMin) / (yMax - yMin)) * (height - marginTop - marginBottom);
+      const x2 = marginLeft + ((x2Value - xMin) / (xMax - xMin)) * (width - marginLeft - marginRight);
+      const y2 = height - marginBottom - ((y2Value - yMin) / (yMax - yMin)) * (height - marginTop - marginBottom);
+
+      // Draw the average (best-fit) line
+      ctx.strokeStyle = '#ff5733';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+
+    // Function to predict value based on adjusted linear regression
+    function predictValue(value, axis) {
+      // Ensure we have sufficient data points
+      if (customValues.length < 2) {
+        return NaN;
+      }
+
+      const xValues = customValues.map(val => val.x);
+      const yValues = customValues.map(val => val.y);
+      const xMin = Math.min(...xValues);
+      const yMin = Math.min(...yValues);
+
+      // Adjusted linear regression to pass through (xMin, yMin)
+      const xDifferences = xValues.map(x => x - xMin);
+      const yDifferences = yValues.map(y => y - yMin);
+
+      const numerator = xDifferences.reduce((sum, xDiff, i) => sum + xDiff * yDifferences[i], 0);
+      const denominator = xDifferences.reduce((sum, xDiff) => sum + xDiff * xDiff, 0);
+
+      if (denominator === 0) {
+        return NaN;
+      }
+
+      const m = numerator / denominator;
+      const b = yMin - m * xMin;
+
+      if (axis === 'x') {
+        // Predict Y for a given X (Y = mX + b)
+        return m * value + b;
+      } else if (axis === 'y') {
+        // Predict X for a given Y (X = (Y - b) / m)
+        if (m === 0) {
+          return NaN;
+        }
+        return (value - b) / m;
+      }
+      return NaN;
+    }
+
+    // Load previously saved values and draw the graph
+    if (customValues.length > 0) {
+      customValues.forEach(val => addCustomValue(val.x, val.y));
+    } else {
+      // Add a default value pair if none exist
+      addCustomValue();
+    }
+    canvas.addEventListener('wheel', function(event) {
+  event.preventDefault();
+  if (event.deltaY < 0) {
+    zoomIn();
+  } else {
+    zoomOut();
+  }
+});
+
+    // Event listeners for unit inputs to update the graph
+    document.getElementById('customUnitXText').addEventListener('input', drawGraph);
+    document.getElementById('customUnitYText').addEventListener('input', drawGraph);
+
+    // Event listeners for graph dimension inputs
+    document.getElementById('graphWidth').addEventListener('input', drawGraph);
+    document.getElementById('graphHeight').addEventListener('input', drawGraph);
+
+    // Redraw graph on window resize
+    window.addEventListener('resize', drawGraph);
+
+    // Initial graph drawing
+    drawGraph();
+  </script>
+</body>
+</html>
