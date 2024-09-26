@@ -3,249 +3,392 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search for Tool</title>
+    <title>Danylo's Drip Funnel Helper</title>
     <style>
+        :root {
+            --primary-color: #0d5c7a;
+            --secondary-color: #22e6d9;
+            --background-color: #041820;
+            --text-color: #e0f7fa;
+            --size: 60px;
+        }
+
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
+
         body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #2a2a2a, #333333);
-            color: #f1f1f1;
+            font-family: Arial, sans-serif;
+            color: var(--text-color);
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            background-color: var(--background-color);
         }
-        .container {
-            background-color: rgba(30, 30, 30, 0.9);
-            border-radius: 15px;
-            padding: 20px;
-            max-width: 600px;
+
+        .water-tank {
+            position: fixed;
+            bottom: 0;
+            left: 0;
             width: 100%;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            height: 100%;
+            background-color: rgba(34, 230, 217, 0.2);
+            transition: height 0.5s linear;
+            z-index: -1;
+        }
+
+        .water-surface {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: waveSurface 2s infinite linear;
+        }
+
+        @keyframes waveSurface {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
             backdrop-filter: blur(10px);
         }
+
         h1 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            font-size: 24px;
             text-align: center;
-            font-size: 2.5rem;
-            color: #f1f1f1;
-            margin-bottom: 30px;
-            letter-spacing: 4px;
         }
-        #search-bar {
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+        }
+
+        .time-picker {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .time-column {
+            width: 30%;
+            text-align: center;
+        }
+
+        .column {
+            height: calc(var(--size) * 3);
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+
+        .column::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+
+        .num {
+            height: var(--size);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: calc(var(--size) / 2);
+            scroll-snap-align: center;
+        }
+
+        .num.selected {
+            background-color: rgba(34, 230, 217, 0.3);
+        }
+
+        button {
             width: 100%;
             padding: 15px;
-            font-size: 1.2rem;
+            background-color: var(--primary-color);
+            color: white;
             border: none;
-            border-radius: 10px;
-            background-color: #444;
-            color: #fff;
-            margin-bottom: 20px;
-            transition: box-shadow 0.3s ease;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
-        #search-bar:focus {
-            outline: none;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+
+        button:hover {
+            background-color: var(--secondary-color);
         }
-        #link-list {
-            transition: opacity 0.3s ease;
-        }
-        .link-item {
-            background-color: rgba(50, 50, 50, 0.9);
-            border-radius: 8px;
-            margin-bottom: 10px;
-            overflow: hidden;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-        }
-        .link-item a {
-            display: block;
-            padding: 15px;
-            text-decoration: none;
-            color: #f1f1f1;
-            font-size: 1.2rem;
-            transition: background-color 0.3s ease;
-        }
-        .link-item:hover {
-            transform: translateY(-5px);
-        }
-        .link-item a:hover {
-            background-color: rgba(80, 80, 80, 0.9);
-        }
-        .similarity-percentage {
-            float: right;
-            font-size: 0.9rem;
-            color: #aaa;
-        }
-        #no-results-message {
+
+        #result, #notification, #countdown {
+            margin-top: 20px;
+            font-size: 18px;
+            color: var(--secondary-color);
             text-align: center;
-            font-size: 1.2rem;
+        }
+
+        #notification {
             color: #ff6b6b;
+        }
+
+        .droplet {
+            width: 10px;
+            height: 10px;
+            background-color: var(--secondary-color);
+            border-radius: 50% 50% 50% 0;
+            position: absolute;
+            left: 50%;
+            top: -10px;
+            transform: rotate(45deg);
+            animation: drip 2s linear;
+        }
+
+        @keyframes drip {
+            0% { top: -10px; opacity: 1; }
+            100% { top: 100vh; opacity: 0; }
+        }
+
+        #alarmControl {
+            width: 100%;
+            padding: 15px;
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
             margin-top: 20px;
             display: none;
         }
-        @media screen and (max-width: 600px) {
-            h1 { font-size: 2rem; }
-            #search-bar { font-size: 1rem; }
-            .link-item a { font-size: 1rem; }
+
+        #alarmControl:hover {
+            background-color: #ff4757;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Danylo's Helping Tools</h1>
-        <input type="text" id="search-bar" placeholder="Ask AI to open something">
-        <div id="link-list"></div>
-        <div id="no-results-message">AI couldn't find what you were looking for.</div>
+    <div class="water-tank">
+        <div class="water-surface"></div>
     </div>
+    <div class="container">
+        <h1>Danylo's Funnel Helper</h1>
+        <div class="input-group">
+            <label for="volume">Total Volume (mL):</label>
+            <input type="number" id="volume" placeholder="eg. 100" required min="1" max="1000">
+        </div>
+        <div class="time-picker">
+            <div class="time-column">
+                <label>Hours</label>
+                <div class="column" id="hours"></div>
+            </div>
+            <div class="time-column">
+                <label>Minutes</label>
+                <div class="column" id="minutes"></div>
+            </div>
+            <div class="time-column">
+                <label>Seconds</label>
+                <div class="column" id="seconds"></div>
+            </div>
+        </div>
+        <button id="simulationButton" onclick="toggleSimulation()">Start Helper</button>
+        <button id="alarmControl" onclick="stopAlarm()">Stop Alarm</button>
+        <div id="notification"></div>
+        <div id="result"></div>
+        <div id="countdown"></div>
+    </div>
+
     <script>
-        const links = [
-            { url: "https://i8danylo8i.github.io/graph", text: "Graph Calculator", keywords: ["math", "graf", "points", "protocoll"] },
-            { url: "https://i8danylo8i.github.io/drop", text: "Drip Funnel Helper", keywords: ["drop", "droplet", "aparatur", "handle", "measuring", "tropf", "trichter"] },
-            { url: "https://vplan.evonik.com", text: "vPlan", keywords: ["general", "tool", "plan", "zeit", "evonik", "protokoll", "day"] },
-            { url: "https://example4.com", text: "Work Time", keywords: ["zeit", "erfassung", "arbeitzeit", "time", "work"] }
-        ];
-        
-        function levenshteinDistance(a, b) {
-            if (a.length === 0) return b.length;
-            if (b.length === 0) return a.length;
-            const matrix = [];
-            for (let i = 0; i <= b.length; i++) {
-                matrix[i] = [i];
+        const DROPLET_SIZE_ML = 0.034;
+        let animationInterval;
+        let remainingVolume;
+        let countdownInterval;
+        let totalTime;
+        let initialTime;
+        let alarm = new Audio('alarm.mp3');
+        let isSimulationRunning = false;
+
+        function initializeTimePicker() {
+            const hours = document.getElementById('hours');
+            const minutes = document.getElementById('minutes');
+            const seconds = document.getElementById('seconds');
+
+            for (let i = 0; i < 24; i++) {
+                hours.innerHTML += `<div class="num">${i.toString().padStart(2, '0')}</div>`;
             }
-            for (let j = 0; j <= a.length; j++) {
-                matrix[0][j] = j;
+
+            for (let i = 0; i < 60; i++) {
+                minutes.innerHTML += `<div class="num">${i.toString().padStart(2, '0')}</div>`;
+                seconds.innerHTML += `<div class="num">${i.toString().padStart(2, '0')}</div>`;
             }
-            for (let i = 1; i <= b.length; i++) {
-                for (let j = 1; j <= a.length; j++) {
-                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                        matrix[i][j] = matrix[i - 1][j - 1];
-                    } else {
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1,
-                            matrix[i][j - 1] + 1,
-                            matrix[i - 1][j] + 1
-                        );
-                    }
-                }
-            }
-            return matrix[b.length][a.length];
-        }
-        
-        function tokenize(text) {
-            return text.toLowerCase().match(/\b\w+\b/g) || [];
-        }
-        
-        function calculateSimilarity(query, text, keywords) {
-            const queryWords = tokenize(query);
-            const textWords = tokenize(text);
-            const allWords = new Set([...textWords, ...keywords]);
-            
-            let totalSimilarity = 0;
-            let matchedKeywords = 0;
-        
-            for (let queryWord of queryWords) {
-                let maxSimilarity = 0;
-                for (let word of allWords) {
-                    const distance = levenshteinDistance(queryWord, word);
-                    const maxLength = Math.max(queryWord.length, word.length);
-                    const similarity = 1 - distance / maxLength;
-                    
-                    if (similarity > 0.8 && keywords.includes(word)) {
-                        matchedKeywords++;
-                    }
-                    
-                    maxSimilarity = Math.max(maxSimilarity, similarity);
-                }
-                totalSimilarity += maxSimilarity;
-            }
-        
-            // Boost score if keywords are matched
-            const keywordBoost = matchedKeywords * 20;
-            
-            return (totalSimilarity / queryWords.length) * 100 + keywordBoost;
-        }
-        
-        function debounce(func, delay) {
-            let timeout;
-            return function(...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(this, args), delay);
-            };
-        }
-        
-        function filterLinks() {
-            const query = document.getElementById('search-bar').value.trim().toLowerCase();
-            const linkList = document.getElementById('link-list');
-            const noResultsMessage = document.getElementById('no-results-message');
-            let visibleLinks = 0;
-        
-            linkList.style.opacity = '0.5';
-            setTimeout(() => {
-                links.forEach(link => {
-                    const similarity = calculateSimilarity(query, link.text, link.keywords);
-                    const linkElement = document.getElementById(link.url);
-                    if (similarity > 30) {  // Lowered threshold
-                        linkElement.style.display = 'block';
-                        linkElement.querySelector('.similarity-percentage').textContent = `(${similarity.toFixed(1)}%)`;
-                        visibleLinks++;
-                    } else {
-                        linkElement.style.display = 'none';
-                    }
-                });
-                noResultsMessage.style.display = visibleLinks === 0 ? 'block' : 'none';
-                linkList.style.opacity = '1';
-            }, 300);
-        }
-        
-        function openLink(url) {
-            window.location.href = url;
-        }
-        
-        function openFirstResult(event) {
-            if (event.key === 'Enter') {
-                const input = document.getElementById('search-bar').value.trim().toLowerCase();
-                let bestMatch = null;
-                let highestSimilarity = -1;
-        
-                links.forEach(link => {
-                    const similarity = calculateSimilarity(input, link.text, link.keywords);
-                    if (similarity > highestSimilarity) {
-                        highestSimilarity = similarity;
-                        bestMatch = link;
-                    }
-                });
-        
-                if (bestMatch && highestSimilarity > 30) {
-                    openLink(bestMatch.url);
-                } else {
-                    alert("AI couldn't find what you were looking for.");
-                }
-            }
-        }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            const linkList = document.getElementById('link-list');
-            links.forEach(link => {
-                const linkItem = document.createElement('div');
-                linkItem.className = 'link-item';
-                linkItem.id = link.url;
-                linkItem.innerHTML = `
-                    <a href="javascript:void(0);" onclick="openLink('${link.url}');">
-                        ${link.text}
-                        <span class="similarity-percentage"></span>
-                    </a>
-                `;
-                linkList.appendChild(linkItem);
+
+            // Center the scrollable areas
+            [hours, minutes, seconds].forEach(el => {
+                el.scrollTop = el.scrollHeight / 2 - el.clientHeight / 2;
+                el.addEventListener('scroll', () => highlightSelected(el));
             });
-        
-            const searchBar = document.getElementById('search-bar');
-            searchBar.addEventListener('input', debounce(filterLinks, 300));
-            searchBar.addEventListener('keypress', openFirstResult);
-        });
-        </script>
+        }
+
+        function highlightSelected(element) {
+            const selectedIndex = Math.round(element.scrollTop / 60);
+            Array.from(element.children).forEach((child, index) => {
+                child.classList.toggle('selected', index === selectedIndex);
+            });
+        }
+
+        function getSelectedTime() {
+            const getSelected = (el) => {
+                const index = Math.round(el.scrollTop / 60);
+                return parseInt(el.children[index].textContent);
+            };
+
+            const h = getSelected(document.getElementById('hours'));
+            const m = getSelected(document.getElementById('minutes'));
+            const s = getSelected(document.getElementById('seconds'));
+
+            return h * 3600 + m * 60 + s;
+        }
+
+        function toggleSimulation() {
+            if (isSimulationRunning) {
+                stopSimulation();
+            } else {
+                startSimulation();
+            }
+        }
+
+        function startSimulation() {
+            clearInterval(animationInterval);
+            clearInterval(countdownInterval);
+            stopAlarm();
+            
+            let volumeML = parseFloat(document.getElementById('volume').value);
+            if (isNaN(volumeML) || volumeML <= 0 || volumeML > 1000) {
+                showNotification("Please enter a valid volume between 1 and 1000 mL.");
+                return;
+            }
+            remainingVolume = volumeML;
+            
+            totalTime = getSelectedTime();
+            initialTime = totalTime;
+            if (totalTime === 0) {
+                showNotification("Please select a valid time duration.");
+                return;
+            }
+
+            let dropsPerMinute = volumeML / DROPLET_SIZE_ML / (totalTime / 60);
+
+            document.getElementById('result').innerHTML = `Drip rate: ${dropsPerMinute.toFixed(2)} drops per minute`;
+            updateCountdown(totalTime);
+            updateWaterLevel(100);
+
+            animationInterval = setInterval(() => animateDroplet(dropsPerMinute), (60 / dropsPerMinute) * 1000);
+            countdownInterval = setInterval(updateCountdown, 1000);
+
+            isSimulationRunning = true;
+            document.getElementById('simulationButton').textContent = 'Stop Helper';
+        }
+
+        function stopSimulation() {
+            clearInterval(animationInterval);
+            clearInterval(countdownInterval);
+            isSimulationRunning = false;
+            document.getElementById('simulationButton').textContent = 'Start Helper';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('countdown').innerHTML = '';
+            updateWaterLevel(100);
+        }
+
+        function animateDroplet(dropsPerMinute) {
+            if (remainingVolume <= 0) {
+                stopSimulation();
+                showNotification("Infusion complete!");
+                playAlarm();
+                return;
+            }
+
+            let droplet = document.createElement('div');
+            droplet.className = 'droplet';
+            document.body.appendChild(droplet);
+
+            setTimeout(() => droplet.remove(), 1000);
+
+            remainingVolume -= DROPLET_SIZE_ML;
+            updateWaterLevel((totalTime / initialTime) * 100);
+        }
+
+        function updateCountdown() {
+            if (totalTime <= 0) {
+                document.getElementById('countdown').innerHTML = "Time's up!";
+                stopSimulation();
+                playAlarm();
+                return;
+            }
+
+            const hours = Math.floor(totalTime / 3600);
+            const minutes = Math.floor((totalTime % 3600) / 60);
+            const seconds = totalTime % 60;
+
+            document.getElementById('countdown').innerHTML = `Time remaining: ${hours}h ${minutes}m ${seconds}s`;
+            totalTime--;
+            updateWaterLevel((totalTime / initialTime) * 100);
+        }
+
+        function updateWaterLevel(percentage) {
+            document.querySelector('.water-tank').style.height = `${percentage}%`;
+        }
+
+        function showNotification(message) {
+            document.getElementById('notification').innerHTML = message;
+            setTimeout(() => {
+                document.getElementById('notification').innerHTML = "";
+            }, 3000);
+        }
+
+        function playAlarm() {
+            alarm.loop = true;
+            alarm.play();
+            document.getElementById('alarmControl').style.display = 'block';
+        }
+
+        function stopAlarm() {
+            alarm.pause();
+            alarm.currentTime = 0;
+            document.getElementById('alarmControl').style.display = 'none';
+        }
+
+        initializeTimePicker();
+    </script>
 </body>
 </html>
