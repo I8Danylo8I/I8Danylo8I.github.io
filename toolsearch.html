@@ -103,14 +103,12 @@
     </div>
     <script>
         const links = [
-            { url: "https://i8danylo8i.github.io/graph", text: "Graph Calculator" },
-            { url: "https://example2.com", text: "Tropf Trichter Helper" },
-            { url: "https://example3.com", text: "Another One" },
-            { url: "https://example4.com", text: "Some Other Tool" }
+            { url: "https://i8danylo8i.github.io/graph", text: "Graph Calculator", keywords: ["math", "graf", "points", "protocoll"] },
+            { url: "https://i8danylo8i.github.io/drop", text: "Drip Funnel Helper", keywords: ["drop", "droplet", "aparatur", "handle", "measuring", "tropf", "trichter"] },
+            { url: "https://vplan.evonik.com", text: "vPlan", keywords: ["general", "tool", "plan", "zeit", "evonik", "protokoll", "day"] },
+            { url: "https://example4.com", text: "Work Time", keywords: ["zeit", "erfassung", "arbeitzeit", "time", "work"] }
         ];
-
-        const stopwords = new Set(['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now']);
-
+        
         function levenshteinDistance(a, b) {
             if (a.length === 0) return b.length;
             if (b.length === 0) return a.length;
@@ -136,33 +134,41 @@
             }
             return matrix[b.length][a.length];
         }
-
+        
         function tokenize(text) {
             return text.toLowerCase().match(/\b\w+\b/g) || [];
         }
-
-        function removeStopwords(words) {
-            return words.filter(word => !stopwords.has(word));
-        }
-
-        function calculateSimilarity(query, text) {
-            const queryWords = removeStopwords(tokenize(query));
-            const textWords = removeStopwords(tokenize(text));
-            let matchCount = 0;
-            let totalWords = new Set([...queryWords, ...textWords]).size;
+        
+        function calculateSimilarity(query, text, keywords) {
+            const queryWords = tokenize(query);
+            const textWords = tokenize(text);
+            const allWords = new Set([...textWords, ...keywords]);
+            
+            let totalSimilarity = 0;
+            let matchedKeywords = 0;
+        
             for (let queryWord of queryWords) {
-                for (let textWord of textWords) {
-                    const distance = levenshteinDistance(queryWord, textWord);
-                    const maxLength = Math.max(queryWord.length, textWord.length);
+                let maxSimilarity = 0;
+                for (let word of allWords) {
+                    const distance = levenshteinDistance(queryWord, word);
+                    const maxLength = Math.max(queryWord.length, word.length);
                     const similarity = 1 - distance / maxLength;
-                    if (similarity > 0.5) {
-                        matchCount++;
+                    
+                    if (similarity > 0.8 && keywords.includes(word)) {
+                        matchedKeywords++;
                     }
+                    
+                    maxSimilarity = Math.max(maxSimilarity, similarity);
                 }
+                totalSimilarity += maxSimilarity;
             }
-            return (matchCount / totalWords) * 100;
+        
+            // Boost score if keywords are matched
+            const keywordBoost = matchedKeywords * 20;
+            
+            return (totalSimilarity / queryWords.length) * 100 + keywordBoost;
         }
-
+        
         function debounce(func, delay) {
             let timeout;
             return function(...args) {
@@ -170,18 +176,19 @@
                 timeout = setTimeout(() => func.apply(this, args), delay);
             };
         }
-
+        
         function filterLinks() {
             const query = document.getElementById('search-bar').value.trim().toLowerCase();
             const linkList = document.getElementById('link-list');
             const noResultsMessage = document.getElementById('no-results-message');
             let visibleLinks = 0;
+        
             linkList.style.opacity = '0.5';
             setTimeout(() => {
                 links.forEach(link => {
-                    const similarity = calculateSimilarity(query, link.text);
+                    const similarity = calculateSimilarity(query, link.text, link.keywords);
                     const linkElement = document.getElementById(link.url);
-                    if (similarity > 1) {
+                    if (similarity > 30) {  // Lowered threshold
                         linkElement.style.display = 'block';
                         linkElement.querySelector('.similarity-percentage').textContent = `(${similarity.toFixed(1)}%)`;
                         visibleLinks++;
@@ -193,49 +200,52 @@
                 linkList.style.opacity = '1';
             }, 300);
         }
-
+        
         function openLink(url) {
             window.location.href = url;
         }
-
+        
         function openFirstResult(event) {
             if (event.key === 'Enter') {
                 const input = document.getElementById('search-bar').value.trim().toLowerCase();
                 let bestMatch = null;
                 let highestSimilarity = -1;
+        
                 links.forEach(link => {
-                    const similarity = calculateSimilarity(input, link.text);
+                    const similarity = calculateSimilarity(input, link.text, link.keywords);
                     if (similarity > highestSimilarity) {
                         highestSimilarity = similarity;
                         bestMatch = link;
                     }
                 });
-                if (bestMatch && highestSimilarity > 1) {
+        
+                if (bestMatch && highestSimilarity > 30) {
                     openLink(bestMatch.url);
                 } else {
                     alert("AI couldn't find what you were looking for.");
                 }
             }
         }
-
+        
         document.addEventListener('DOMContentLoaded', () => {
-    const linkList = document.getElementById('link-list');
-    links.forEach(link => {
-        const linkItem = document.createElement('div');
-        linkItem.className = 'link-item';
-        linkItem.id = link.url;
-        linkItem.innerHTML = `
-            <a href="javascript:void(0);" onclick="openLink('${link.url}');">
-                ${link.text}
-                <span class="similarity-percentage"></span>
-            </a>
-        `;
-        linkList.appendChild(linkItem);
-    });
+            const linkList = document.getElementById('link-list');
+            links.forEach(link => {
+                const linkItem = document.createElement('div');
+                linkItem.className = 'link-item';
+                linkItem.id = link.url;
+                linkItem.innerHTML = `
+                    <a href="javascript:void(0);" onclick="openLink('${link.url}');">
+                        ${link.text}
+                        <span class="similarity-percentage"></span>
+                    </a>
+                `;
+                linkList.appendChild(linkItem);
+            });
+        
             const searchBar = document.getElementById('search-bar');
             searchBar.addEventListener('input', debounce(filterLinks, 300));
             searchBar.addEventListener('keypress', openFirstResult);
         });
-    </script>
+        </script>
 </body>
 </html>
