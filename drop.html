@@ -206,7 +206,7 @@
         <h1>Danylo's Funnel Helper</h1>
         <div class="input-group">
             <label for="volume">Total Volume (mL):</label>
-            <input type="number" id="volume" placeholder="eg. 100" required min="1" max="1000">
+            <input type="number" id="volume" placeholder="eg. 100" value="100" required min="1" max="1000">
         </div>
         <div class="time-picker">
             <div class="time-column">
@@ -238,27 +238,61 @@
         let initialTime;
         let alarm = new Audio('alarm.mp3');
         let isSimulationRunning = false;
+        let wakeLock = null;
+
+                // Request wake lock to keep the screen on
+                async function requestWakeLock() {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                wakeLock.addEventListener('release', () => {
+                    console.log('Wake Lock was released');
+                });
+                console.log('Wake Lock is active');
+            } catch (err) {
+                console.error(`${err.name}, ${err.message}`);
+            }
+        }
+
+        // Release wake lock if it's active
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release();
+                wakeLock = null;
+            }
+        }
+
+        // Handle visibility change to track the timer even when minimized
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                hiddenStartTime = Date.now();
+            } else {
+                let hiddenDuration = Math.floor((Date.now() - hiddenStartTime) / 1000);
+                totalTime -= hiddenDuration;
+            }
+        });
+
 
         function initializeTimePicker() {
-            const hours = document.getElementById('hours');
-            const minutes = document.getElementById('minutes');
-            const seconds = document.getElementById('seconds');
+    const hours = document.getElementById('hours');
+    const minutes = document.getElementById('minutes');
+    const seconds = document.getElementById('seconds');
 
-            for (let i = 0; i < 24; i++) {
-                hours.innerHTML += `<div class="num">${i.toString().padStart(2, '0')}</div>`;
-            }
+    for (let i = 0; i < 24; i++) {
+        hours.innerHTML += `<div class="num">${i.toString().padStart(2, '0')}</div>`;
+    }
 
-            for (let i = 0; i < 60; i++) {
-                minutes.innerHTML += `<div class="num">${i.toString().padStart(2, '0')}</div>`;
-                seconds.innerHTML += `<div class="num">${i.toString().padStart(2, '0')}</div>`;
-            }
+    for (let i = 0; i < 60; i++) {
+        minutes.innerHTML += `<div class="num">${i.toString().padStart(2, '0')}</div>`;
+        seconds.innerHTML += `<div class="num">${i.toString().padStart(2, '0')}</div>`;
+    }
+    hours.scrollTop = 0;
+    minutes.scrollTop = 15 * 60;
+    seconds.scrollTop = 0;
+    [hours, minutes, seconds].forEach(el => {
+        el.addEventListener('scroll', () => highlightSelected(el));
+    });
+}
 
-            // Center the scrollable areas
-            [hours, minutes, seconds].forEach(el => {
-                el.scrollTop = el.scrollHeight / 2 - el.clientHeight / 2;
-                el.addEventListener('scroll', () => highlightSelected(el));
-            });
-        }
 
         function highlightSelected(element) {
             const selectedIndex = Math.round(element.scrollTop / 60);
