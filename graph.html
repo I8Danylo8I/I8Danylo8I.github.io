@@ -196,7 +196,7 @@
       <div class="section">
         <div class="section-title">Custom X and Y Values</div>
         <div class="custom-values" id="customValues">
-          <!-- Dynamic input fields for X and Y values will be added here -->
+          
         </div>
         <button class="add-button" onclick="addCustomValue()">+</button>
       </div>
@@ -258,7 +258,7 @@
       drawGraph();
     });
 
-    // Function to add custom X and Y values
+    
     function addCustomValue(x = '', y = '') {
       customValuesCount++;
       const customValuesContainer = document.getElementById('customValues');
@@ -279,15 +279,15 @@
       yInput.id = `yValue-${customValuesCount}`;
       yInput.value = y;
 
-      // Event listeners for auto-filling and saving values
+      
       xInput.addEventListener('blur', autoFillValue);
       yInput.addEventListener('blur', autoFillValue);
 
-      // Call saveValues when inputs change
+      
       xInput.addEventListener('input', saveValues);
       yInput.addEventListener('input', saveValues);
 
-      // Create remove button
+      
       const removeButton = document.createElement('button');
       removeButton.textContent = 'Remove';
       removeButton.onclick = function() {
@@ -300,11 +300,11 @@
       valuePairDiv.appendChild(removeButton);
       customValuesContainer.appendChild(valuePairDiv);
 
-      // No need to push to customValues here; saveValues will handle it
+      
       saveValues();
     }
 
-    // Function to save values to localStorage and update the graph
+    
     function saveValues() {
       customValues = [];
       const customValuesContainer = document.getElementById('customValues');
@@ -324,13 +324,13 @@
       drawGraph();
     }
 
-    // Function to auto-fill missing X or Y values based on the graph
+    
     function autoFillValue() {
       const xInput = this.parentNode.querySelector('input[id^="xValue-"]');
       const yInput = this.parentNode.querySelector('input[id^="yValue-"]');
 
       if (this === xInput && yInput.value === '') {
-        // If Y is empty, predict Y based on X
+        
         const xVal = parseFloat(xInput.value);
         if (!isNaN(xVal) && customValues.length >= 2) {
           const yVal = predictValue(xVal, 'x');
@@ -340,7 +340,7 @@
           }
         }
       } else if (this === yInput && xInput.value === '') {
-        // If X is empty, predict X based on Y
+        
         const yVal = parseFloat(yInput.value);
         if (!isNaN(yVal) && customValues.length >= 2) {
           const xVal = predictValue(yVal, 'y');
@@ -352,7 +352,7 @@
       }
     }
 
-    // Function to get unit from select or custom input
+    
     function getUnit(selectId, customTextId) {
       const unitSelect = document.getElementById(selectId);
       if (unitSelect.value === 'custom') {
@@ -361,15 +361,15 @@
       return unitSelect.value;
     }
 
-    // Function to draw the graph
+    
     function drawGraph() {
       const canvas = document.getElementById('graph');
       const ctx = canvas.getContext('2d');
 
-      // Adjust canvas size based on container width
+      
       const containerWidth = document.querySelector('.container').clientWidth;
-      canvas.width = containerWidth - 40; // 40px padding adjustment
-      canvas.height = (canvas.width * 0.625); // Maintain aspect ratio (16:10)
+      canvas.width = containerWidth - 40; 
+      canvas.height = (canvas.width * 0.625); 
 
       const width = canvas.width;
       const height = canvas.height;
@@ -394,13 +394,13 @@
       const yMin = Math.min(...yValues);
       const yMax = Math.max(...yValues);
 
-      // Margins
+      
       const marginLeft = 40;
       const marginRight = 20;
       const marginTop = 30;
       const marginBottom = 30;
 
-      // Draw 1mm squares
+      
       ctx.strokeStyle = '#ddd';
       ctx.lineWidth = 0.5;
       for (let i = 0; i <= graphWidthMm; i++) {
@@ -418,7 +418,7 @@
         ctx.stroke();
       }
 
-      // Draw larger squares for every cm
+      
       ctx.strokeStyle = '#aaa';
       ctx.lineWidth = 1;
       for (let i = 0; i <= graphWidthCm; i++) {
@@ -436,7 +436,7 @@
         ctx.stroke();
       }
 
-      // Draw points (smaller circles)
+      
       ctx.fillStyle = '#007bff';
       ctx.font = '12px Arial';
       for (let j = 0; j < xValues.length; j++) {
@@ -450,33 +450,33 @@
         ctx.arc(xPos, yPos, 3, 0, 2 * Math.PI);
         ctx.fill();
 
-        // Draw extended scale lines for each value
+        
         ctx.strokeStyle = '#333';
         ctx.lineWidth = 2;
 
         ctx.beginPath();
         ctx.moveTo(xPos, height - marginBottom);
-        ctx.lineTo(xPos, height - marginBottom + 10); // Longer tick at the bottom
+        ctx.lineTo(xPos, height - marginBottom + 10); 
         ctx.stroke();
         ctx.fillText(xVal.toFixed(2) + " " + getUnit('customUnitX', 'customUnitXText'), xPos - 10, height - marginBottom + 25);
 
         ctx.beginPath();
         ctx.moveTo(marginLeft, yPos);
-        ctx.lineTo(marginLeft - 10, yPos); // Longer tick at the left
+        ctx.lineTo(marginLeft - 10, yPos); 
         ctx.stroke();
         ctx.fillText(yVal.toFixed(2) + " " + getUnit('customUnitY', 'customUnitYText'), 5, yPos + 5);
       }
 
-      // Draw graph border
+      
       ctx.strokeStyle = '#000';
       ctx.lineWidth = 2;
       ctx.strokeRect(marginLeft, marginTop, width - marginLeft - marginRight, height - marginTop - marginBottom);
 
-      // Update the custom value positions (X,Y) in cm and mm
+      
       updateScaleInfo(xValues, yValues, xMin, xMax, yMin, yMax);
     }
 
-    // Function to update scale information
+    
     function updateScaleInfo(xValues, yValues, xMin, xMax, yMin, yMax) {
       const xScaleList = document.getElementById('xScaleList');
       const yScaleList = document.getElementById('yScaleList');
@@ -500,7 +500,7 @@
       }
     }
 
-    // Function to draw the average (best-fit) line starting from (xMin, yMin)
+    
     function drawAverageLine() {
       if (customValues.length < 2) {
         alert('At least two data points are required to draw an average line.');
@@ -520,13 +520,13 @@
       const yMin = Math.min(...yValues);
       const yMax = Math.max(...yValues);
 
-      // Margins
+      
       const marginLeft = 40;
       const marginRight = 20;
       const marginTop = 30;
       const marginBottom = 30;
 
-      // Adjusted linear regression to pass through (xMin, yMin)
+      
       const xDifferences = xValues.map(x => x - xMin);
       const yDifferences = yValues.map(y => y - yMin);
 
@@ -541,7 +541,7 @@
       const m = numerator / denominator;
       const b = yMin - m * xMin;
 
-      // Calculate the end points of the line
+      
       const x1Value = xMin;
       const y1Value = m * x1Value + b;
       const x2Value = xMax;
@@ -552,7 +552,7 @@
       const x2 = marginLeft + ((x2Value - xMin) / (xMax - xMin)) * (width - marginLeft - marginRight);
       const y2 = height - marginBottom - ((y2Value - yMin) / (yMax - yMin)) * (height - marginTop - marginBottom);
 
-      // Draw the average (best-fit) line
+      
       ctx.strokeStyle = '#ff5733';
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -561,9 +561,9 @@
       ctx.stroke();
     }
 
-    // Function to predict value based on adjusted linear regression
+    
     function predictValue(value, axis) {
-      // Ensure we have sufficient data points
+      
       if (customValues.length < 2) {
         return NaN;
       }
@@ -573,7 +573,7 @@
       const xMin = Math.min(...xValues);
       const yMin = Math.min(...yValues);
 
-      // Adjusted linear regression to pass through (xMin, yMin)
+      
       const xDifferences = xValues.map(x => x - xMin);
       const yDifferences = yValues.map(y => y - yMin);
 
@@ -588,10 +588,10 @@
       const b = yMin - m * xMin;
 
       if (axis === 'x') {
-        // Predict Y for a given X (Y = mX + b)
+        
         return m * value + b;
       } else if (axis === 'y') {
-        // Predict X for a given Y (X = (Y - b) / m)
+        
         if (m === 0) {
           return NaN;
         }
@@ -600,11 +600,11 @@
       return NaN;
     }
 
-    // Load previously saved values and draw the graph
+    
     if (customValues.length > 0) {
       customValues.forEach(val => addCustomValue(val.x, val.y));
     } else {
-      // Add a default value pair if none exist
+      
       addCustomValue();
     }
     canvas.addEventListener('wheel', function(event) {
@@ -616,18 +616,18 @@
   }
 });
 
-    // Event listeners for unit inputs to update the graph
+    
     document.getElementById('customUnitXText').addEventListener('input', drawGraph);
     document.getElementById('customUnitYText').addEventListener('input', drawGraph);
 
-    // Event listeners for graph dimension inputs
+    
     document.getElementById('graphWidth').addEventListener('input', drawGraph);
     document.getElementById('graphHeight').addEventListener('input', drawGraph);
 
-    // Redraw graph on window resize
+    
     window.addEventListener('resize', drawGraph);
 
-    // Initial graph drawing
+    
     drawGraph();
   </script>
 </body>
