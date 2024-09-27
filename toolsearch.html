@@ -163,7 +163,6 @@
                 totalSimilarity += maxSimilarity;
             }
         
-            // Boost score if keywords are matched
             const keywordBoost = matchedKeywords * 20;
             
             return (totalSimilarity / queryWords.length) * 100 + keywordBoost;
