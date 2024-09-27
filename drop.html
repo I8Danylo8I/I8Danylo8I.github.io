@@ -240,7 +240,7 @@
         let isSimulationRunning = false;
         let wakeLock = null;
 
-                // Request wake lock to keep the screen on
+                
                 async function requestWakeLock() {
             try {
                 wakeLock = await navigator.wakeLock.request('screen');
@@ -253,7 +253,7 @@
             }
         }
 
-        // Release wake lock if it's active
+        
         function releaseWakeLock() {
             if (wakeLock !== null) {
                 wakeLock.release();
@@ -261,7 +261,7 @@
             }
         }
 
-        // Handle visibility change to track the timer even when minimized
+        
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
                 hiddenStartTime = Date.now();
