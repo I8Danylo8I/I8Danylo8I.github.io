@@ -187,7 +187,7 @@
                 links.forEach(link => {
                     const similarity = calculateSimilarity(query, link.text, link.keywords);
                     const linkElement = document.getElementById(link.url);
-                    if (similarity > 30) {  // Lowered threshold
+                    if (similarity > 30) {  
                         linkElement.style.display = 'block';
                         linkElement.querySelector('.similarity-percentage').textContent = `(${similarity.toFixed(1)}%)`;
                         visibleLinks++;
