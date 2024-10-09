@@ -343,6 +343,7 @@
         let graphHeight = parseFloat(localStorage.getItem('graphHeight')) || 17;
         document.getElementById('graphWidth').value = graphWidth;
         document.getElementById('graphHeight').value = graphHeight;
+
         function initializeDefaultValues() {
             if (customValues.length < 2) {
                 customValues = [
@@ -357,6 +358,7 @@
             customValues.forEach(val => addCustomValue(val.x, val.y));
         }
         drawGraph();
+
         function toggleCustomUnit(axis) {
             const unitSelect = document.getElementById(`customUnit${axis}`);
             const customUnitText = document.getElementById(`customUnit${axis}Text`);
@@ -369,6 +371,7 @@
             drawGraph();
             saveValues();
         }
+
         function addCustomValue(x = '', y = '') {
             customValuesCount++;
             const customValuesContainer = document.getElementById('customValues');
@@ -411,6 +414,7 @@
                 saveValues();
             }
         }
+
         function saveValues() {
             customValues = [];
             const customValuesContainer = document.getElementById('customValues');
@@ -429,6 +433,7 @@
             localStorage.setItem('graphHeight', document.getElementById('graphHeight').value);
             drawGraph();
         }
+
         function autoFillValue() {
             const xInput = this.parentNode.querySelector('input[id^="xValue-"]');
             const yInput = this.parentNode.querySelector('input[id^="yValue-"]');
@@ -452,6 +457,7 @@
                 }
             }
         }
+
         function getUnit(selectId, customTextId) {
             const unitSelect = document.getElementById(selectId);
             if (unitSelect.value === 'custom') {
@@ -459,6 +465,7 @@
             }
             return unitSelect.value;
         }
+
         function drawGraph() {
             const canvas = document.getElementById('graph');
             const ctx = canvas.getContext('2d');
@@ -559,6 +566,7 @@
             ctx.stroke();
             updateScaleInfo(xValues, yValues, xMin, xMax, yMin, yMax);
         }
+
         function updateScaleInfo(xValues, yValues, xMin, xMax, yMin, yMax) {
             const xScaleList = document.getElementById('xScaleList');
             const yScaleList = document.getElementById('yScaleList');
@@ -576,6 +584,7 @@
                 yScaleList.appendChild(yScaleItem);
             });
         }
+
         function drawAverageLine() {
             if (customValues.length < 2) {
                 alert('At least two data points are required to draw an average line.');
@@ -583,8 +592,11 @@
             }
             const canvas = document.getElementById('graph');
             const ctx = canvas.getContext('2d');
-            const desiredWidth = canvas.width / 5;
-            const desiredHeight = canvas.height / 5;
+            const containerWidth = document.querySelector('.container').clientWidth;
+            const desiredWidth = containerWidth - 60;
+            const scaleFactor = window.devicePixelRatio || 1;
+            const width = desiredWidth;
+            const height = desiredWidth * 0.625;
             const graphWidthCm = parseFloat(document.getElementById('graphWidth').value);
             const graphHeightCm = parseFloat(document.getElementById('graphHeight').value);
             const xValues = customValues.map(val => val.x);
@@ -597,24 +609,26 @@
             const marginRight = 20;
             const marginTop = 40;
             const marginBottom = 60;
-            const xDifferences = xValues.map(x => x - xMin);
-            const yDifferences = yValues.map(y => y - yMin);
-            const numerator = xDifferences.reduce((sum, xDiff, i) => sum + xDiff * yDifferences[i], 0);
-            const denominator = xDifferences.reduce((sum, xDiff) => sum + xDiff * xDiff, 0);
+            const n = customValues.length;
+            const sumX = xValues.reduce((sum, x) => sum + x, 0);
+            const sumY = yValues.reduce((sum, y) => sum + y, 0);
+            const sumXY = customValues.reduce((sum, val) => sum + (val.x * val.y), 0);
+            const sumXX = customValues.reduce((sum, val) => sum + (val.x * val.x), 0);
+            const denominator = (n * sumXX) - (sumX * sumX);
             if (denominator === 0) {
                 alert('Cannot compute average line due to zero variance in X values.');
                 return;
             }
-            const m = numerator / denominator;
-            const b = yMin - m * xMin;
+            const m = (n * sumXY - sumX * sumY) / denominator;
+            const b = (sumY - m * sumX) / n;
             const x1Value = xMin;
             const y1Value = m * x1Value + b;
             const x2Value = xMax;
             const y2Value = m * x2Value + b;
-            const x1 = marginLeft + ((x1Value - xMin) / (xMax - xMin)) * (desiredWidth - marginLeft - marginRight);
-            const y1 = desiredHeight - marginBottom - ((y1Value - yMin) / (yMax - yMin)) * (desiredHeight - marginTop - marginBottom);
-            const x2 = marginLeft + ((x2Value - xMin) / (xMax - xMin)) * (desiredWidth - marginLeft - marginRight);
-            const y2 = desiredHeight - marginBottom - ((y2Value - yMin) / (yMax - yMin)) * (desiredHeight - marginTop - marginBottom);
+            const x1 = marginLeft + ((x1Value - xMin) / (xMax - xMin)) * (width - marginLeft - marginRight);
+            const y1 = height - marginBottom - ((y1Value - yMin) / (yMax - yMin)) * (height - marginTop - marginBottom);
+            const x2 = marginLeft + ((x2Value - xMin) / (xMax - xMin)) * (width - marginLeft - marginRight);
+            const y2 = height - marginBottom - ((y2Value - yMin) / (yMax - yMin)) * (height - marginTop - marginBottom);
             ctx.strokeStyle = '#FF0000';
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -623,23 +637,24 @@
             ctx.stroke();
             updateScaleInfo(xValues, yValues, xMin, xMax, yMin, yMax);
         }
+
         function predictValue(value, axis) {
             if (customValues.length < 2) {
                 return NaN;
             }
             const xValues = customValues.map(val => val.x);
             const yValues = customValues.map(val => val.y);
-            const xMin = Math.min(...xValues);
-            const yMin = Math.min(...yValues);
-            const xDifferences = xValues.map(x => x - xMin);
-            const yDifferences = yValues.map(y => y - yMin);
-            const numerator = xDifferences.reduce((sum, xDiff, i) => sum + xDiff * yDifferences[i], 0);
-            const denominator = xDifferences.reduce((sum, xDiff) => sum + xDiff * xDiff, 0);
+            const n = customValues.length;
+            const sumX = xValues.reduce((sum, x) => sum + x, 0);
+            const sumY = yValues.reduce((sum, y) => sum + y, 0);
+            const sumXY = customValues.reduce((sum, val) => sum + (val.x * val.y), 0);
+            const sumXX = customValues.reduce((sum, val) => sum + (val.x * val.x), 0);
+            const denominator = (n * sumXX) - (sumX * sumX);
             if (denominator === 0) {
                 return NaN;
             }
-            const m = numerator / denominator;
-            const b = yMin - m * xMin;
+            const m = (n * sumXY - sumX * sumY) / denominator;
+            const b = (sumY - m * sumX) / n;
             if (axis === 'x') {
                 return m * value + b;
             } else if (axis === 'y') {
@@ -650,9 +665,11 @@
             }
             return NaN;
         }
+
         window.addEventListener('resize', () => {
             debounce(drawGraph, 300)();
         });
+
         function debounce(func, wait) {
             let timeout;
             return function(...args) {
