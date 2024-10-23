@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>3D Orbital Model Drawer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #2a2a2a, #333333);
+            color: #f1f1f1;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            background-color: rgba(40, 40, 40, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+        .section h2 {
+            text-align: center;
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 10px;
+            background-color: #444;
+            color: #fff;
+            margin-bottom: 10px;
+            transition: box-shadow 0.3s ease, background-color 0.3s ease, transform 0.3s ease;
+        }
+        input:focus, button:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        button {
+            cursor: pointer;
+            background-color: #555;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        button:hover {
+            background-color: #666;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
+        }
+        button:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            background-color: #3a3a3a; 
+            color: #f1f1f1;
+            border: 1px solid #555;
+        }
+        th, td {
+            border: 1px solid #555;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+        }
+        th {
+            background-color: #444; 
+            color: #fff;
+        }
+        tr {
+            transition: background-color 0.3s ease;
+        }
+        tr:hover {
+            background-color: #484848;
+        }
+        #threeCanvas, #threeCanvasGlow, #twoCanvas {
+            width: 100%;
+            height: 400px;
+            background-color: #bdc3c7;
+            border: 2px solid #7f8c8d;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        @media screen and (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            input, button {
+                font-size: 0.9rem;
+            }
+            .section h2 {
+                font-size: 1.4rem;
+            }
+            th, td {
+                font-size: 0.8rem;
+            }
+            #threeCanvas, #threeCanvasGlow, #twoCanvas {
+                height: 250px;
+            }
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin-bottom: 5px;
+        }
+        .switch input {
+            display: none;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            background-color: #ccc;
+            border-radius: 34px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            transition: background-color 0.4s;
+        }
+        .slider::before {
+            content: "";
+            position: absolute;
+            left: 4px;
+            bottom: 4px;
+            height: 26px;
+            width: 26px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.4s;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:checked + .slider::before {
+            transform: translateX(26px);
+        }
+        .toggle-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .toggle-section label {
+            margin-left: 10px;
+            font-size: 1.4rem;
+            margin-top: 10px;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>3D Orbital Model Drawer</h1>
+    <div class="toggle-section">
+        <label class="switch">
+            <input type="checkbox" id="toggleFeatures">
+            <span class="slider"></span>
+        </label>
+        <label for="toggleFeatures">Show Test/Broken Features</label>
+    </div>
+    <div class="container">
+        
+        <div class="section test-feature">
+            <h2 class="electron-configuration" style="color:red;">Enter Electron Configuration (Broken)</h2>
+            <input type="text" id="electronConfig" placeholder="e.g., 1s^2 2s^2 2p^6">
+            <button id="buildFromConfig">Build Orbitals</button>
+        </div>
+
+        
+        <div class="section">
+            <h2>Enter Principal Quantum Number (n)</h2>
+            <table id="quantumTable">
+                <thead>
+                    <tr>
+                        <th>N</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                </tbody>
+            </table>
+            <button id="addRow">Add Row</button>
+            <button id="deleteAllBtn">Delete All</button>
+        </div>
+
+        
+        <div class="section">
+            <h2>3D Orbital Visualization</h2>
+            <div id="threeCanvas"></div>
+        </div>
+
+        
+        <div class="section test-feature">
+            <h2 class="glow-element" style="color:red;">3D Glow (test)</h2>
+            <div id="threeCanvasGlow"></div>
+        </div>
+
+        
+        <div class="section test-feature">
+            <h2 class="2d-element" style="color:red;">2D (Broken)</h2>
+            <canvas id="twoCanvas"></canvas>
+        </div>
+
+        
+        <div class="section">
+            <h2>Quantum Numbers Table</h2>
+            <table id="qnTable">
+                <thead>
+                    <tr>
+                        <th>N</th>
+                        <th>L</th>
+                        <th>M</th>
+                        <th>S</th>
+                        <th>Orbital Type</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/three@0.142.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.142.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/three@0.142.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.142.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.142.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/three@0.142.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.142.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.142.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const addRowBtn = document.getElementById('addRow');
+            const quantumTable = document.getElementById('quantumTable').querySelector('tbody');
+            const qnTableBody = document.getElementById('qnTable').querySelector('tbody');
+            const threeContainer = document.getElementById('threeCanvas');
+            const threeContainerGlow = document.getElementById('threeCanvasGlow');
+            const twoCanvas = document.getElementById('twoCanvas');
+            const deleteAllBtn = document.getElementById('deleteAllBtn');
+            const electronConfigInput = document.getElementById('electronConfig');
+            const buildFromConfigBtn = document.getElementById('buildFromConfig');
+            const toggleFeaturesCheckbox = document.getElementById('toggleFeatures');
+
+            
+            function updateTestFeatures() {
+                const testFeatures = document.querySelectorAll('.test-feature');
+                testFeatures.forEach(feature => {
+                    if (toggleFeaturesCheckbox.checked) {
+                        feature.style.display = 'block';
+                        feature.classList.add('fade-in');
+                    } else {
+                        feature.style.display = 'none';
+                        feature.classList.remove('fade-in');
+                    }
+                });
+            }
+
+            
+            updateTestFeatures();
+
+            
+            toggleFeaturesCheckbox.addEventListener('change', updateTestFeatures);
+
+            
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, threeContainer.clientWidth / threeContainer.clientHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(threeContainer.clientWidth, threeContainer.clientHeight);
+            threeContainer.appendChild(renderer.domElement);
+
+            
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enablePan = false;
+            controls.enableZoom = true;
+
+            camera.position.set(0, 20, 50);
+            controls.update();
+
+            
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 10, 10);
+            scene.add(directionalLight);
+
+            
+            const orbitalsGroup = new THREE.Group();
+            scene.add(orbitalsGroup);
+
+            
+            const sceneGlow = new THREE.Scene();
+            const cameraGlow = new THREE.PerspectiveCamera(75, threeContainerGlow.clientWidth / threeContainerGlow.clientHeight, 0.1, 1000);
+            const rendererGlow = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            rendererGlow.setSize(threeContainerGlow.clientWidth, threeContainerGlow.clientHeight);
+            threeContainerGlow.appendChild(rendererGlow.domElement);
+
+            
+            const controlsGlow = new THREE.OrbitControls(cameraGlow, rendererGlow.domElement);
+            controlsGlow.enableDamping = true;
+            controlsGlow.dampingFactor = 0.05;
+            controlsGlow.enablePan = false;
+            controlsGlow.enableZoom = true;
+
+            cameraGlow.position.set(0, 20, 50);
+            controlsGlow.update();
+
+            
+            const ambientLightGlow = new THREE.AmbientLight(0xffffff, 0.6);
+            sceneGlow.add(ambientLightGlow);
+
+            const directionalLightGlow = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLightGlow.position.set(10, 10, 10);
+            sceneGlow.add(directionalLightGlow);
+
+            
+            const orbitalsGroupGlow = new THREE.Group();
+            sceneGlow.add(orbitalsGroupGlow);
+
+            
+            const composer = new THREE.EffectComposer(rendererGlow);
+            const renderPass = new THREE.RenderPass(sceneGlow, cameraGlow);
+            composer.addPass(renderPass);
+
+            const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(threeContainerGlow.clientWidth, threeContainerGlow.clientHeight), 1.5, 0.4, 0.85);
+            bloomPass.threshold = 0;
+            bloomPass.strength = 2;
+            bloomPass.radius = 0;
+            composer.addPass(bloomPass);
+
+            
+            window.addEventListener('resize', onWindowResize);
+            function onWindowResize() {
+                
+                camera.aspect = threeContainer.clientWidth / threeContainer.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(threeContainer.clientWidth, threeContainer.clientHeight);
+
+                
+                cameraGlow.aspect = threeContainerGlow.clientWidth / threeContainerGlow.clientHeight;
+                cameraGlow.updateProjectionMatrix();
+                rendererGlow.setSize(threeContainerGlow.clientWidth, threeContainerGlow.clientHeight);
+                composer.setSize(threeContainerGlow.clientWidth, threeContainerGlow.clientHeight);
+
+                
+                twoCanvas.width = twoCanvas.clientWidth;
+                twoCanvas.height = twoCanvas.clientHeight;
+            }
+
+            
+            const ctx = twoCanvas.getContext('2d');
+            twoCanvas.width = twoCanvas.clientWidth;
+            twoCanvas.height = twoCanvas.clientHeight;
+
+            
+            function saveQuantumNumbers() {
+                const nValues = [];
+                const rows = quantumTable.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const nInput = row.querySelector('input[name="n"]');
+                    if (nInput) {
+                        nValues.push(parseInt(nInput.value));
+                    }
+                });
+                localStorage.setItem('quantumNumbers', JSON.stringify(nValues));
+            }
+
+            
+            function loadQuantumNumbers() {
+                const nValues = JSON.parse(localStorage.getItem('quantumNumbers'));
+                if (nValues && nValues.length > 0) {
+                    quantumTable.innerHTML = ''; 
+                    nValues.forEach(n => {
+                        const newRow = document.createElement('tr');
+                        newRow.innerHTML = `
+                            <td><input type="number" name="n" min="1" value="${n}"></td>
+                            <td>
+                                <button class="drawBtn">Draw 3D</button>
+                                <button class="deleteBtn">Delete</button>
+                            </td>
+                        `;
+                        quantumTable.appendChild(newRow);
+                        attachRowEvents(newRow);
+                    });
+                } else {
+                    
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td><input type="number" name="n" min="1" value="1"></td>
+                        <td>
+                            <button class="drawBtn">Draw 3D</button>
+                            <button class="deleteBtn">Delete</button>
+                        </td>
+                    `;
+                    quantumTable.appendChild(newRow);
+                    attachRowEvents(newRow);
+                }
+            }
+
+            
+            loadQuantumNumbers();
+
+            
+            addRowBtn.addEventListener('click', () => {
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td><input type="number" name="n" min="1" value="1"></td>
+                    <td>
+                        <button class="drawBtn">Draw 3D</button>
+                        <button class="deleteBtn">Delete</button>
+                    </td>
+                `;
+                quantumTable.appendChild(newRow);
+                attachRowEvents(newRow);
+                saveQuantumNumbers();
+            });
+
+            
+            function attachRowEvents(row) {
+                const nInput = row.querySelector('input[name="n"]');
+                const draw3DBtn = row.querySelector('.drawBtn');
+                const deleteBtn = row.querySelector('.deleteBtn');
+
+                nInput.addEventListener('change', saveQuantumNumbers);
+
+                draw3DBtn.addEventListener('click', () => {
+                    const n = parseInt(nInput.value);
+
+                    if (isNaN(n) || n < 1) {
+                        alert('Please enter a valid principal quantum number (n ≥ 1).');
+                        return;
+                    }
+
+                    
+                    const orbitals = generateQuantumNumbers(n);
+
+                    
+                    orbitals.forEach(qn => {
+                        drawOrbital3D(qn.n, qn.l, qn.m, qn.s);
+                        drawOrbitalGlow(qn.n, qn.l, qn.m, qn.s);
+                        drawOrbital2D(qn.n, qn.l, qn.m, qn.s);
+                        addQuantumNumberToTable(qn, row);
+                    });
+
+                    saveQuantumNumbers();
+                });
+
+                deleteBtn.addEventListener('click', () => {
+                    
+                    const n = parseInt(nInput.value);
+
+                    if (isNaN(n) || n < 1) {
+                        alert('Invalid principal quantum number.');
+                        return;
+                    }
+
+                    
+                    removeOrbitalsByN(n);
+
+                    
+                    const rows = qnTableBody.querySelectorAll('tr');
+                    rows.forEach(tr => {
+                        const trN = parseInt(tr.querySelector('.qn-n').textContent);
+                        if (trN === n) {
+                            tr.remove();
+                        }
+                    });
+
+                    
+                    ctx.clearRect(0, 0, twoCanvas.width, twoCanvas.height);
+
+                    
+                    row.remove();
+
+                    saveQuantumNumbers();
+                });
+            }
+
+            
+            function generateQuantumNumbers(n) {
+                const orbitals = [];
+                for (let l = 0; l < n; l++) {
+                    for (let m = -l; m <= l; m++) {
+                        
+                        orbitals.push({ n, l, m, s: 1 });
+                        orbitals.push({ n, l, m, s: -1 });
+                    }
+                }
+                return orbitals;
+            }
+
+            
+            function getOrbitalColor(l) {
+                const colors = [0x3498db, 0x2ecc71, 0xe74c3c, 0x9b59b6, 0xf1c40f, 0xe67e22];
+                return colors[l % colors.length];
+            }
+
+            
+            function getOrbitalType(l) {
+                const types = ['s', 'p', 'd', 'f', 'g', 'h'];
+                return types[l] || 'unknown';
+            }
+
+            
+            function createOrbitalPath(n, l, m, s, color, materialOptions = {}) {
+                let mesh;
+
+                if (l === 0) {
+                    
+                    const geometry = new THREE.SphereGeometry(10 * n, 32, 32);
+                    const material = new THREE.MeshBasicMaterial({
+                        color: color,
+                        wireframe: true,
+                        transparent: true,
+                        opacity: 0.5,
+                        ...materialOptions
+                    });
+                    mesh = new THREE.Mesh(geometry, material);
+                } else if (l === 1) {
+                    
+                    const points = [];
+                    points.push(new THREE.Vector2(0, 0));
+                    points.push(new THREE.Vector2(2, 0));
+                    points.push(new THREE.Vector2(4, 2));
+                    points.push(new THREE.Vector2(5, 5));
+                    points.push(new THREE.Vector2(4, 8));
+                    points.push(new THREE.Vector2(2, 10));
+                    points.push(new THREE.Vector2(0, 10));
+
+                    const geometry = new THREE.LatheGeometry(points, 32);
+                    geometry.scale(n * 1.5, n * 1.5, n * 1.5);
+
+                    const material = new THREE.MeshBasicMaterial({
+                        color: color,
+                        wireframe: true,
+                        transparent: true,
+                        opacity: 0.5,
+                        ...materialOptions
+                    });
+
+                    const lobe1 = new THREE.Mesh(geometry, material);
+                    const lobe2 = new THREE.Mesh(geometry, material);
+
+                    lobe2.rotation.z = Math.PI;
+
+                    const group = new THREE.Group();
+                    group.add(lobe1);
+                    group.add(lobe2);
+
+                    mesh = group;
+                } else {
+                    
+                    const group = new THREE.Group();
+
+                    const points = [];
+                    points.push(new THREE.Vector2(0, 0));
+                    points.push(new THREE.Vector2(1, 0.5));
+                    points.push(new THREE.Vector2(2, 1.5));
+                    points.push(new THREE.Vector2(2.5, 3));
+                    points.push(new THREE.Vector2(2, 4.5));
+                    points.push(new THREE.Vector2(1, 5.5));
+                    points.push(new THREE.Vector2(0, 6));
+
+                    const geometry = new THREE.LatheGeometry(points, 32);
+                    geometry.scale(n * 1.2, n * 1.2, n * 1.2);
+
+                    const material = new THREE.MeshBasicMaterial({
+                        color: color,
+                        wireframe: true,
+                        transparent: true,
+                        opacity: 0.5,
+                        ...materialOptions
+                    });
+
+                    const lobes = l * 2;
+                    for (let i = 0; i < lobes; i++) {
+                        const lobe = new THREE.Mesh(geometry, material);
+                        lobe.rotation.y = (i / lobes) * Math.PI * 2;
+                        group.add(lobe);
+                    }
+
+                    mesh = group;
+                }
+
+                return mesh;
+            }
+
+            
+            function createElectron(n, l, m, s, color) {
+                const electronGeometry = new THREE.SphereGeometry(1.5 * n, 16, 16);
+                const electronMaterial = new THREE.MeshStandardMaterial({ color: 0xffd700 });
+                const electron = new THREE.Mesh(electronGeometry, electronMaterial);
+
+                const distance = 10 * n + l * 5;
+                const x = m * distance;
+                const y = 0;
+                const z = s * distance / 2;
+                electron.position.set(x, y, z);
+
+                return electron;
+            }
+
+            
+            function drawOrbital3D(n, l, m, s) {
+                const orbitalGroup = new THREE.Group();
+                orbitalGroup.userData = { n, l, m, s };
+                orbitalsGroup.add(orbitalGroup);
+
+                const color = getOrbitalColor(l);
+
+                const orbitalPath = createOrbitalPath(n, l, m, s, color);
+                orbitalGroup.add(orbitalPath);
+
+                const electron = createElectron(n, l, m, s, color);
+                orbitalGroup.add(electron);
+            }
+
+            
+            function drawOrbitalGlow(n, l, m, s) {
+                const orbitalGroup = new THREE.Group();
+                orbitalGroup.userData = { n, l, m, s };
+                orbitalsGroupGlow.add(orbitalGroup);
+
+                const color = getOrbitalColor(l);
+
+                const orbitalPath = createOrbitalPath(n, l, m, s, color, {
+                    emissive: new THREE.Color(color),
+                    emissiveIntensity: 1,
+                    color: 0x000000
+                });
+                orbitalGroup.add(orbitalPath);
+
+                const electron = createElectron(n, l, m, s, color);
+                orbitalGroup.add(electron);
+            }
+
+            
+            function drawOrbital2D(n, l, m, s) {
+                ctx.clearRect(0, 0, twoCanvas.width, twoCanvas.height);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 2;
+
+                if (l === 0) {
+                    
+                    ctx.beginPath();
+                    ctx.arc(twoCanvas.width / 2, twoCanvas.height / 2, 20 * n, 0, 2 * Math.PI);
+                    ctx.stroke();
+                } else {
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(twoCanvas.width / 2, twoCanvas.height / 2 - 20 * n);
+                    ctx.lineTo(twoCanvas.width / 2 + 20 * n, twoCanvas.height / 2);
+                    ctx.lineTo(twoCanvas.width / 2, twoCanvas.height / 2 + 20 * n);
+                    ctx.lineTo(twoCanvas.width / 2 - 20 * n, twoCanvas.height / 2);
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+            }
+
+            
+            function addQuantumNumberToTable(qn, row) {
+                const { n, l, m, s } = qn;
+                const orbitalType = getOrbitalType(l);
+                const qnRow = document.createElement('tr');
+                qnRow.innerHTML = `
+                    <td class="qn-n">${n}</td>
+                    <td>${l}</td>
+                    <td>${m}</td>
+                    <td>${s}</td>
+                    <td>${n}${orbitalType}</td>
+                    <td>
+                        <button class="deleteQnBtn">Delete</button>
+                    </td>
+                `;
+                qnTableBody.appendChild(qnRow);
+                const deleteQnBtn = qnRow.querySelector('.deleteQnBtn');
+                deleteQnBtn.addEventListener('click', () => {
+                    const qnN = parseInt(qnRow.querySelector('.qn-n').textContent);
+                    const qnL = parseInt(qnRow.children[1].textContent);
+                    const qnM = parseInt(qnRow.children[2].textContent);
+                    const qnS = parseInt(qnRow.children[3].textContent);
+
+                    removeOrbitalsByQuantumNumbers(qnN, qnL, qnM, qnS);
+                    qnRow.remove();
+                });
+            }
+
+            
+            function removeOrbitalsByQuantumNumbers(n, l, m, s) {
+                const objectsToRemove = [];
+                orbitalsGroup.children.forEach(obj => {
+                    const data = obj.userData;
+                    if (data.n === n && data.l === l && data.m === m && data.s === s) {
+                        objectsToRemove.push(obj);
+                    }
+                });
+                objectsToRemove.forEach(obj => {
+                    orbitalsGroup.remove(obj);
+                });
+
+                const objectsToRemoveGlow = [];
+                orbitalsGroupGlow.children.forEach(obj => {
+                    const data = obj.userData;
+                    if (data.n === n && data.l === l && data.m === m && data.s === s) {
+                        objectsToRemoveGlow.push(obj);
+                    }
+                });
+                objectsToRemoveGlow.forEach(obj => {
+                    orbitalsGroupGlow.remove(obj);
+                });
+
+                ctx.clearRect(0, 0, twoCanvas.width, twoCanvas.height);
+            }
+
+            
+            function removeOrbitalsByN(n) {
+                const objectsToRemove = [];
+                orbitalsGroup.children.forEach(obj => {
+                    if (obj.userData.n === n) {
+                        objectsToRemove.push(obj);
+                    }
+                });
+                objectsToRemove.forEach(obj => {
+                    orbitalsGroup.remove(obj);
+                });
+
+                const objectsToRemoveGlow = [];
+                orbitalsGroupGlow.children.forEach(obj => {
+                    if (obj.userData.n === n) {
+                        objectsToRemoveGlow.push(obj);
+                    }
+                });
+                objectsToRemoveGlow.forEach(obj => {
+                    orbitalsGroupGlow.remove(obj);
+                });
+            }
+
+            
+            deleteAllBtn.addEventListener('click', () => {
+                
+                orbitalsGroup.clear();
+                orbitalsGroupGlow.clear();
+                
+                qnTableBody.innerHTML = '';
+                
+                quantumTable.innerHTML = '';
+                
+                localStorage.removeItem('quantumNumbers');
+                
+                ctx.clearRect(0, 0, twoCanvas.width, twoCanvas.height);
+            });
+
+            
+            buildFromConfigBtn.addEventListener('click', () => {
+                const config = electronConfigInput.value;
+                const orbitals = parseElectronConfiguration(config);
+                orbitals.forEach(qn => {
+                    drawOrbital3D(qn.n, qn.l, qn.m, qn.s);
+                    drawOrbitalGlow(qn.n, qn.l, qn.m, qn.s);
+                    drawOrbital2D(qn.n, qn.l, qn.m, qn.s);
+                    addQuantumNumberToTable(qn);
+                });
+            });
+
+            
+            function parseElectronConfiguration(config) {
+                const orbitals = [];
+                const regex = /(\d+)([spdfgh])\^(\d+)/g;
+                let match;
+                while ((match = regex.exec(config)) !== null) {
+                    const n = parseInt(match[1]);
+                    const lChar = match[2];
+                    const electronCount = parseInt(match[3]);
+                    const l = 'spdfgh'.indexOf(lChar);
+                    const mValues = [];
+                    for (let m = -l; m <= l; m++) {
+                        mValues.push(m);
+                    }
+                    const sValues = [1, -1];
+                    let electronsPlaced = 0;
+                    for (let m of mValues) {
+                        for (let s of sValues) {
+                            if (electronsPlaced < electronCount) {
+                                orbitals.push({ n, l, m, s });
+                                electronsPlaced++;
+                            }
+                        }
+                    }
+                }
+                return orbitals;
+            }
+
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                controlsGlow.update();
+                renderer.render(scene, camera);
+                composer.render();
+            }
+
+            
+            animate();
+        });
+    </script>
+</body>
+</html>
