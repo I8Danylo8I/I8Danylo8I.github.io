@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Danylos pH Predictor</title>
+    <style>
+        /* Existing styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #2a2a2a, #333333);
+            color: #f1f1f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: rgba(30, 30, 30, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #f1f1f1;
+            margin-bottom: 30px;
+            letter-spacing: 4px;
+        }
+        input, button, select, textarea {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 10px;
+            background-color: #444;
+            color: #fff;
+            margin-bottom: 20px;
+            transition: box-shadow 0.3s ease;
+            text-align: center;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        button {
+            background-color: #555;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        button:hover {
+            background-color: #666;
+        }
+        table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #555;
+        }
+        #prediction-result {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #ff6b6b;
+            margin-top: 20px;
+        }
+        .settings-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #555;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .settings-button:hover {
+            background-color: #666;
+        }
+        .settings-menu {
+            display: none;
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            background-color: rgba(50, 50, 50, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            max-width: 300px;
+            width: 90%;
+        }
+        .settings-menu h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .settings-menu hr {
+            border: 0;
+            height: 1px;
+            background-color: #555;
+            margin: 10px 0;
+        }
+        .settings-menu button, .settings-menu select, .settings-menu textarea {
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .settings-menu label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+        @media screen and (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            input, button, select, textarea { font-size: 1rem; }
+            .settings-button {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+        }
+        .delete-button {
+            background-color: #ff6b6b;
+            border: none;
+            border-radius: 5px;
+            padding: 5px;
+            color: #fff;
+            cursor: pointer;
+        }
+        .delete-button:hover {
+            background-color: #ff4c4c;
+        }
+        #error-message {
+            color: #ff6b6b;
+            background-color: rgba(255, 107, 107, 0.1);
+            padding: 10px;
+            border: 1px solid #ff6b6b;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="settings-button" onclick="toggleSettings()">⚙️</button>
+        <div class="settings-menu" id="settings-menu">
+            <h2>Settings</h2>
+            <hr>
+            <label>Prediction Method:</label>
+            <select id="prediction-method" onchange="changePredictionMethod()">
+                <option value="linear">Linear Regression Prediction</option>
+                <option value="average">Average Prediction</option>
+                <option value="polynomial">Polynomial Regression Prediction</option>
+            </select>
+            <hr>
+            <label>Dataset Management:</label>
+            <button onclick="copyData()">📋 Copy Dataset to Clipboard</button>
+            <button onclick="pasteData()">📥 Paste Dataset from Clipboard</button>
+            <button onclick="clearData()">🗑️ Clear Dataset</button>
+        </div>
+        <h1>Danylo's NaOH Predictor</h1>
+        <input type="number" step="any" id="naoh-input" placeholder="Enter NaOH amount in grams">
+        <input type="text" id="ph-range-input" placeholder="Enter pH value or range (e.g., 7.5 or 7.5 - 8.0)">
+        <button onclick="addData()">➕ Add Data Point</button>
+        <table id="data-table">
+            <tr>
+                <th>NaOH (g)</th>
+                <th>pH Range</th>
+                <th>Action</th>
+            </tr>
+        </table>
+        <input type="number" step="0.01" id="desired-ph" placeholder="Enter desired pH value">
+        <button onclick="predictNaOH()">🔍 Predict NaOH Amount</button>
+        <div id="prediction-result"></div>
+        <div id="error-message"></div>
+    </div>
+    <script>
+        let dataPoints = [];
+        let predictionMethod = 'linear';
+
+        
+        window.onload = function() {
+            loadDataFromLocalStorage();
+        };
+
+        function loadDataFromLocalStorage() {
+            const storedData = localStorage.getItem('naohDataPoints');
+            if (storedData) {
+                dataPoints = JSON.parse(storedData);
+                refreshDataTable();
+            }
+        }
+
+        function saveDataToLocalStorage() {
+            localStorage.setItem('naohDataPoints', JSON.stringify(dataPoints));
+        }
+
+        function toggleSettings() {
+            const menu = document.getElementById('settings-menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function addData() {
+            clearError();
+            const naohInput = document.getElementById('naoh-input').value.replace(',', '.');
+            const phRangeInput = document.getElementById('ph-range-input').value.replace(',', '.').trim();
+
+            const naohAmount = parseFloat(naohInput);
+
+            if (isNaN(naohAmount) || phRangeInput === '') {
+                showError('Please enter valid numbers for NaOH amount and pH value or range.');
+                return;
+            }
+
+            let phMin, phMax;
+
+            if (phRangeInput.includes('-')) {
+                const parts = phRangeInput.split('-').map(s => parseFloat(s.trim()));
+                if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
+                    showError('Please enter a valid pH range (e.g., 7.5 - 8.0).');
+                    return;
+                }
+                phMin = Math.min(parts[0], parts[1]);
+                phMax = Math.max(parts[0], parts[1]);
+            } else {
+                const phValue = parseFloat(phRangeInput);
+                if (isNaN(phValue)) {
+                    showError('Please enter a valid pH value.');
+                    return;
+                }
+                phMin = phMax = phValue;
+            }
+
+            const dataPoint = { naohAmount: naohAmount, phMin: phMin, phMax: phMax };
+            dataPoints.push(dataPoint);
+            addDataRow(dataPoint, dataPoints.length - 1);
+
+            saveDataToLocalStorage();
+
+            document.getElementById('naoh-input').value = '';
+            document.getElementById('ph-range-input').value = '';
+        }
+
+        function addDataRow(dataPoint, index) {
+            const table = document.getElementById('data-table');
+            const row = table.insertRow();
+            row.setAttribute('data-index', index);
+
+            const cellNaOH = row.insertCell(0);
+            const cellPH = row.insertCell(1);
+            const cellAction = row.insertCell(2);
+
+            cellNaOH.innerHTML = dataPoint.naohAmount.toFixed(6).replace('.', ',') + ' g';
+            cellPH.innerHTML = dataPoint.phMin.toFixed(2).replace('.', ',') + (dataPoint.phMin !== dataPoint.phMax ? ' - ' + dataPoint.phMax.toFixed(2).replace('.', ',') : '');
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '🗑️';
+            deleteBtn.className = 'delete-button';
+            deleteBtn.onclick = function() {
+                deleteDataPoint(index);
+            };
+            cellAction.appendChild(deleteBtn);
+        }
+
+        function deleteDataPoint(index) {
+            clearError();
+            dataPoints.splice(index, 1);
+            saveDataToLocalStorage();
+            refreshDataTable();
+        }
+
+        function refreshDataTable() {
+            const table = document.getElementById('data-table');
+            
+            while (table.rows.length > 1) {
+                table.deleteRow(1);
+            }
+
+            dataPoints.forEach((dp, index) => {
+                addDataRow(dp, index);
+            });
+        }
+
+        function predictNaOH() {
+            clearError();
+            if (dataPoints.length < 1) {
+                showError('Please add at least one data point to make a prediction.');
+                return;
+            }
+
+            const desiredPHInput = document.getElementById('desired-ph').value.replace(',', '.');
+            const desiredPH = parseFloat(desiredPHInput);
+
+            if (isNaN(desiredPH)) {
+                showError('Please enter a valid desired pH value.');
+                return;
+            }
+
+            let predictedNaOH, naohRange;
+
+            switch (predictionMethod) {
+                case 'linear':
+                    ({ predictedNaOH, naohRange } = linearPrediction(desiredPH));
+                    break;
+                case 'average':
+                    ({ predictedNaOH, naohRange } = averagePrediction(desiredPH));
+                    break;
+                case 'polynomial':
+                    ({ predictedNaOH, naohRange } = polynomialPrediction(desiredPH));
+                    break;
+                default:
+                    showError('Invalid prediction method selected.');
+                    return;
+            }
+
+            if (isNaN(predictedNaOH) || isNaN(naohRange.min) || isNaN(naohRange.max)) {
+                showError('Prediction could not be made with the current data.');
+                return;
+            }
+
+            const resultDiv = document.getElementById('prediction-result');
+            resultDiv.innerHTML = `🔹 NaOH needed: from <strong>${naohRange.min.toFixed(6).replace('.', ',')} g</strong> to <strong>${naohRange.max.toFixed(6).replace('.', ',')} g</strong><br>✨ Recommended: <strong>${predictedNaOH.toFixed(6).replace('.', ',')} g</strong>`;
+        }
+
+        function linearPrediction(desiredPH) {
+            const n = dataPoints.length;
+            const regressionData = dataPoints.map(dp => ({
+                x: (dp.phMin + dp.phMax) / 2,
+                y: dp.naohAmount
+            }));
+
+            let slope, intercept;
+
+            if (n === 1) {
+                
+                slope = 0;
+                intercept = regressionData[0].y;
+            } else {
+                const regressionResult = linearRegression(regressionData);
+                if (!regressionResult) {
+                    return { predictedNaOH: NaN, naohRange: { min: NaN, max: NaN } };
+                }
+                slope = regressionResult.slope;
+                intercept = regressionResult.intercept;
+            }
+
+            const predictedNaOH = slope * desiredPH + intercept;
+            const naohRange = estimateRange(regressionData, { slope, intercept }, desiredPH);
+
+            return { predictedNaOH, naohRange };
+        }
+
+        function averagePrediction(desiredPH) {
+            const tolerance = 0.1;
+            const nearbyPoints = dataPoints.filter(dp => {
+                const phAvg = (dp.phMin + dp.phMax) / 2;
+                return Math.abs(phAvg - desiredPH) <= tolerance;
+            });
+
+            if (nearbyPoints.length === 0) {
+                
+                const naohValues = dataPoints.map(dp => dp.naohAmount);
+                const predictedNaOH = naohValues.reduce((a, b) => a + b, 0) / naohValues.length;
+                const minNaOH = Math.min(...naohValues);
+                const maxNaOH = Math.max(...naohValues);
+                return { predictedNaOH, naohRange: { min: minNaOH, max: maxNaOH } };
+            }
+
+            const naohValues = nearbyPoints.map(dp => dp.naohAmount);
+            const predictedNaOH = naohValues.reduce((a, b) => a + b, 0) / naohValues.length;
+            const minNaOH = Math.min(...naohValues);
+            const maxNaOH = Math.max(...naohValues);
+
+            return { predictedNaOH, naohRange: { min: minNaOH, max: maxNaOH } };
+        }
+
+        function polynomialPrediction(desiredPH) {
+            const n = dataPoints.length;
+            const degree = Math.min(2, n - 1); 
+
+            if (n < 1) {
+                return { predictedNaOH: NaN, naohRange: { min: NaN, max: NaN } };
+            }
+
+            const regressionData = dataPoints.map(dp => ({
+                x: (dp.phMin + dp.phMax) / 2,
+                y: dp.naohAmount
+            }));
+
+            const regressionResult = polynomialRegression(regressionData, degree);
+
+            if (!regressionResult) {
+                return { predictedNaOH: NaN, naohRange: { min: NaN, max: NaN } };
+            }
+
+            const predictedNaOH = regressionResult.predict(desiredPH);
+            const naohRange = estimatePolynomialRange(regressionData, regressionResult, desiredPH);
+
+            return { predictedNaOH, naohRange };
+        }
+
+        function linearRegression(data) {
+            const n = data.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+
+            for (let i = 0; i < n; i++) {
+                sumX += data[i].x;
+                sumY += data[i].y;
+                sumXY += data[i].x * data[i].y;
+                sumXX += data[i].x * data[i].x;
+            }
+
+            const denominator = n * sumXX - sumX * sumX;
+
+            if (denominator === 0) {
+                return null;
+            }
+
+            const slope = (n * sumXY - sumX * sumY) / denominator;
+            const intercept = (sumY - slope * sumX) / n;
+
+            return { slope: slope, intercept: intercept };
+        }
+
+        function polynomialRegression(data, degree) {
+            const x = data.map(d => d.x);
+            const y = data.map(d => d.y);
+            const n = x.length;
+
+            
+            const X = [];
+            for (let i = 0; i < n; i++) {
+                X[i] = [];
+                for (let j = 0; j <= degree; j++) {
+                    X[i][j] = Math.pow(x[i], j);
+                }
+            }
+
+            
+            const XT = X[0].map((_, colIndex) => X.map(row => row[colIndex]));
+
+            
+            const XTX = multiplyMatrices(XT, X);
+            const XTy = multiplyMatrixVector(XT, y);
+            const beta = solveLinearSystem(XTX, XTy);
+
+            if (!beta) {
+                return null;
+            }
+
+            return {
+                coefficients: beta,
+                predict: function(x) {
+                    let yPred = 0;
+                    for (let i = 0; i < beta.length; i++) {
+                        yPred += beta[i] * Math.pow(x, i);
+                    }
+                    return yPred;
+                }
+            };
+        }
+
+        function multiplyMatrices(A, B) {
+            const result = [];
+            for (let i = 0; i < A.length; i++) {
+                result[i] = [];
+                for (let j = 0; j < B[0].length; j++) {
+                    let sum = 0;
+                    for (let k = 0; k < A[0].length; k++) {
+                        sum += A[i][k] * B[k][j];
+                    }
+                    result[i][j] = sum;
+                }
+            }
+            return result;
+        }
+
+        function multiplyMatrixVector(A, v) {
+            const result = [];
+            for (let i = 0; i < A.length; i++) {
+                let sum = 0;
+                for (let j = 0; j < A[0].length; j++) {
+                    sum += A[i][j] * v[j];
+                }
+                result[i] = sum;
+            }
+            return result;
+        }
+
+        function solveLinearSystem(A, b) {
+            const n = A.length;
+            for (let i = 0; i < n; i++) {
+                A[i] = A[i].concat(b[i]);
+            }
+
+            for (let i = 0; i < n; i++) {
+                let maxEl = Math.abs(A[i][i]);
+                let maxRow = i;
+                for (let k = i + 1; k < n; k++) {
+                    if (Math.abs(A[k][i]) > maxEl) {
+                        maxEl = Math.abs(A[k][i]);
+                        maxRow = k;
+                    }
+                }
+
+                [A[maxRow], A[i]] = [A[i], A[maxRow]];
+
+                if (A[i][i] === 0) {
+                    return null;
+                }
+
+                for (let k = i + 1; k < n; k++) {
+                    const c = -A[k][i] / A[i][i];
+                    for (let j = i; j < n + 1; j++) {
+                        if (i === j) {
+                            A[k][j] = 0;
+                        } else {
+                            A[k][j] += c * A[i][j];
+                        }
+                    }
+                }
+            }
+
+            const x = new Array(n);
+            for (let i = n - 1; i >= 0; i--) {
+                x[i] = A[i][n] / A[i][i];
+                for (let k = i - 1; k >= 0; k--) {
+                    A[k][n] -= A[k][i] * x[i];
+                }
+            }
+            return x;
+        }
+
+        function estimateRange(data, regressionResult, desiredPH) {
+            const n = data.length;
+            let sumSquaredResiduals = 0;
+            for (let i = 0; i < n; i++) {
+                const predictedY = regressionResult.slope * data[i].x + regressionResult.intercept;
+                const residual = data[i].y - predictedY;
+                sumSquaredResiduals += residual * residual;
+            }
+            const degreesOfFreedom = n - 2;
+            const variance = degreesOfFreedom > 0 ? sumSquaredResiduals / degreesOfFreedom : 0;
+            const standardError = Math.sqrt(variance);
+
+            const predictedNaOH = regressionResult.slope * desiredPH + regressionResult.intercept;
+            const minNaOH = predictedNaOH - standardError;
+            const maxNaOH = predictedNaOH + standardError;
+
+            return { min: minNaOH, max: maxNaOH };
+        }
+
+        function estimatePolynomialRange(data, regressionResult, desiredPH) {
+            const n = data.length;
+            const p = regressionResult.coefficients.length;
+            let sumSquaredResiduals = 0;
+            for (let i = 0; i < n; i++) {
+                const predictedY = regressionResult.predict(data[i].x);
+                const residual = data[i].y - predictedY;
+                sumSquaredResiduals += residual * residual;
+            }
+            const degreesOfFreedom = n - p;
+            const variance = degreesOfFreedom > 0 ? sumSquaredResiduals / degreesOfFreedom : 0;
+            const standardError = Math.sqrt(variance);
+
+            const predictedNaOH = regressionResult.predict(desiredPH);
+            const minNaOH = predictedNaOH - standardError;
+            const maxNaOH = predictedNaOH + standardError;
+
+            return { min: minNaOH, max: maxNaOH };
+        }
+
+        function copyData() {
+            clearError();
+            const dataStr = JSON.stringify(dataPoints);
+            navigator.clipboard.writeText(dataStr).then(() => {
+                
+            }, () => {
+                showError('Failed to copy dataset to clipboard.');
+            });
+        }
+
+        function pasteData() {
+            clearError();
+            navigator.clipboard.readText().then(text => {
+                try {
+                    const importedData = JSON.parse(text);
+                    if (Array.isArray(importedData)) {
+                        dataPoints = importedData;
+                        saveDataToLocalStorage();
+                        refreshDataTable();
+                        
+                    } else {
+                        showError('Invalid dataset format in clipboard.');
+                    }
+                } catch (error) {
+                    showError('Error parsing the dataset from clipboard.');
+                }
+            }, () => {
+                showError('Failed to read from clipboard.');
+            });
+        }
+
+        function clearData() {
+            clearError();
+            if (confirm('Are you sure you want to clear the dataset? This action cannot be undone.')) {
+                dataPoints = [];
+                saveDataToLocalStorage();
+                refreshDataTable();
+            }
+        }
+
+        function changePredictionMethod() {
+            const select = document.getElementById('prediction-method');
+            predictionMethod = select.value;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.innerText = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function clearError() {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.innerText = '';
+            errorDiv.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
