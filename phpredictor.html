@@ -169,14 +169,12 @@
         <div class="settings-menu" id="settings-menu">
             <h2>Settings</h2>
             <hr>
-            <label>Prediction Method:</label>
             <select id="prediction-method" onchange="changePredictionMethod()">
                 <option value="linear">Linear Regression Prediction</option>
                 <option value="average">Average Prediction</option>
                 <option value="polynomial">Polynomial Regression Prediction</option>
             </select>
             <hr>
-            <label>Dataset Management:</label>
             <button onclick="copyData()">📋 Copy Dataset to Clipboard</button>
             <button onclick="pasteData()">📥 Paste Dataset from Clipboard</button>
             <button onclick="clearData()">🗑️ Clear Dataset</button>
